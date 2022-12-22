@@ -1,7 +1,6 @@
 ## Doc
 
-https://anthonycouthures.github.io/CO2/build/html/index.html
-
+https://anthonycouthures.github.io/CO2-Game/
 
 ## Pour installer :
     
