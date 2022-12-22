@@ -1,0 +1,7 @@
+*.pyc
+__pycache__
+.vscode
+.ipynb_checkpoints
+docs/make.bat
+docs/Makefile
+plots
