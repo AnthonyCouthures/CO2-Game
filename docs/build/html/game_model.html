@@ -1,0 +1,1112 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Game Theory Model &mdash; Conference of Parties Model 0.1 documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/sphinx_highlight.js"></script>
+        <script crossorigin="anonymous" integrity="sha256-Ae2Vz/4ePdIu6ZyI/5ZGsYnb+m0JlOmKPjt6XZ9JJkA=" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.4/require.min.js"></script>
+        <script>window.MathJax = {"tex": {"inlineMath": [["$", "$"], ["\\(", "\\)"]], "processEscapes": true}, "options": {"ignoreHtmlClass": "tex2jax_ignore|mathjax_ignore|document", "processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+        <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Notebooks" href="notebooks.html" />
+    <link rel="prev" title="Climate Model" href="climate_model.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+            <a href="index.html" class="icon icon-home"> Conference of Parties Model
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="climate_model.html">Climate Model</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Game Theory Model</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-parameters">Parameters</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.FIRST_YEAR"><code class="docutils literal notranslate"><span class="pre">FIRST_YEAR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.FINAL_YEAR"><code class="docutils literal notranslate"><span class="pre">FINAL_YEAR</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.STEP"><code class="docutils literal notranslate"><span class="pre">STEP</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.T"><code class="docutils literal notranslate"><span class="pre">T</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.INCREASE_CO2_RATIO"><code class="docutils literal notranslate"><span class="pre">INCREASE_CO2_RATIO</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.CARBON_MODEL"><code class="docutils literal notranslate"><span class="pre">CARBON_MODEL</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.TEMPERATURE_MODEL"><code class="docutils literal notranslate"><span class="pre">TEMPERATURE_MODEL</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.SCM"><code class="docutils literal notranslate"><span class="pre">SCM</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.N"><code class="docutils literal notranslate"><span class="pre">N</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.ACTION_SETS"><code class="docutils literal notranslate"><span class="pre">ACTION_SETS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.DELTAS"><code class="docutils literal notranslate"><span class="pre">DELTAS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.GDP_MAX"><code class="docutils literal notranslate"><span class="pre">GDP_MAX</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.NAMES"><code class="docutils literal notranslate"><span class="pre">NAMES</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.BENEFITS"><code class="docutils literal notranslate"><span class="pre">BENEFITS</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.BENEFITS_CONCAVE"><code class="docutils literal notranslate"><span class="pre">BENEFITS_CONCAVE</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.BENEFITS_SIGMOID"><code class="docutils literal notranslate"><span class="pre">BENEFITS_SIGMOID</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.BENEFITS_CONVEX"><code class="docutils literal notranslate"><span class="pre">BENEFITS_CONVEX</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.DAMAGE"><code class="docutils literal notranslate"><span class="pre">DAMAGE()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.ALPHA"><code class="docutils literal notranslate"><span class="pre">ALPHA</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.INCREASE_COEF_CO2_RATIO"><code class="docutils literal notranslate"><span class="pre">INCREASE_COEF_CO2_RATIO</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#parameters.PERCENTAGES_GREEN"><code class="docutils literal notranslate"><span class="pre">PERCENTAGES_GREEN</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-models.game_theory_model.benefit_function">Benefit Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#models.game_theory_model.benefit_function.polynome"><code class="docutils literal notranslate"><span class="pre">polynome()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.game_theory_model.benefit_function.benefit_affine"><code class="docutils literal notranslate"><span class="pre">benefit_affine()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.game_theory_model.benefit_function.benefit_quadratic_concave"><code class="docutils literal notranslate"><span class="pre">benefit_quadratic_concave()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.game_theory_model.benefit_function.benefit_quadratic_convex"><code class="docutils literal notranslate"><span class="pre">benefit_quadratic_convex()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.game_theory_model.benefit_function.benefit_sigm"><code class="docutils literal notranslate"><span class="pre">benefit_sigm()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-models.game_theory_model.damage_function">Damage Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#models.game_theory_model.damage_function.damage_polynome"><code class="docutils literal notranslate"><span class="pre">damage_polynome()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-models.game_theory_model.player">Player Object</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#models.game_theory_model.player.player_class"><code class="docutils literal notranslate"><span class="pre">player_class</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.name"><code class="docutils literal notranslate"><span class="pre">player_class.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.action_set_initial"><code class="docutils literal notranslate"><span class="pre">player_class.action_set_initial</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.GDP_initial"><code class="docutils literal notranslate"><span class="pre">player_class.GDP_initial</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.percentage_green"><code class="docutils literal notranslate"><span class="pre">player_class.percentage_green</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.benefit_shape"><code class="docutils literal notranslate"><span class="pre">player_class.benefit_shape</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.GDP_max"><code class="docutils literal notranslate"><span class="pre">player_class.GDP_max</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.action_set"><code class="docutils literal notranslate"><span class="pre">player_class.action_set</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.scm"><code class="docutils literal notranslate"><span class="pre">player_class.scm</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.benefit_function"><code class="docutils literal notranslate"><span class="pre">player_class.benefit_function</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.damage_function"><code class="docutils literal notranslate"><span class="pre">player_class.damage_function</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.delta"><code class="docutils literal notranslate"><span class="pre">player_class.delta</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.alpha"><code class="docutils literal notranslate"><span class="pre">player_class.alpha</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.increase_co2"><code class="docutils literal notranslate"><span class="pre">player_class.increase_co2</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.damage_in_percentage"><code class="docutils literal notranslate"><span class="pre">player_class.damage_in_percentage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.reset_player"><code class="docutils literal notranslate"><span class="pre">player_class.reset_player()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.reset_scm"><code class="docutils literal notranslate"><span class="pre">player_class.reset_scm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.reset"><code class="docutils literal notranslate"><span class="pre">player_class.reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.utility_one_shot"><code class="docutils literal notranslate"><span class="pre">player_class.utility_one_shot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.utility_n_shot"><code class="docutils literal notranslate"><span class="pre">player_class.utility_n_shot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.best_response_one_shot"><code class="docutils literal notranslate"><span class="pre">player_class.best_response_one_shot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.update_player"><code class="docutils literal notranslate"><span class="pre">player_class.update_player()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game_theory_model.player.player_class.simulate_update_player"><code class="docutils literal notranslate"><span class="pre">player_class.simulate_update_player()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#module-models.game">Game Model</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#models.game.create_players"><code class="docutils literal notranslate"><span class="pre">create_players()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#models.game.Game"><code class="docutils literal notranslate"><span class="pre">Game</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.N"><code class="docutils literal notranslate"><span class="pre">Game.N</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.T"><code class="docutils literal notranslate"><span class="pre">Game.T</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.scm_game"><code class="docutils literal notranslate"><span class="pre">Game.scm_game</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.ex_e"><code class="docutils literal notranslate"><span class="pre">Game.ex_e</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.ex_f"><code class="docutils literal notranslate"><span class="pre">Game.ex_f</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.list_players"><code class="docutils literal notranslate"><span class="pre">Game.list_players</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.reset"><code class="docutils literal notranslate"><span class="pre">Game.reset()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.update_player"><code class="docutils literal notranslate"><span class="pre">Game.update_player()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.update_players_scm"><code class="docutils literal notranslate"><span class="pre">Game.update_players_scm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.get_players_utilities"><code class="docutils literal notranslate"><span class="pre">Game.get_players_utilities()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.get_action_space"><code class="docutils literal notranslate"><span class="pre">Game.get_action_space()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.get_GDP_max"><code class="docutils literal notranslate"><span class="pre">Game.get_GDP_max()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.repeated_one_shot_game"><code class="docutils literal notranslate"><span class="pre">Game.repeated_one_shot_game()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.best_response_dynamic_one_shot"><code class="docutils literal notranslate"><span class="pre">Game.best_response_dynamic_one_shot()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="notebooks.html">Notebooks</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Conference of Parties Model</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home"></a></li>
+      <li class="breadcrumb-item active">Game Theory Model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/game_model.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  
+<style>
+/* CSS overrides for sphinx_rtd_theme */
+
+/* 24px margin */
+.nbinput.nblast.container,
+.nboutput.nblast.container {
+    margin-bottom: 19px;  /* padding has already 5px */
+}
+
+/* ... except between code cells! */
+.nblast.container + .nbinput.container {
+    margin-top: -19px;
+}
+
+.admonition > p:before {
+    margin-right: 4px;  /* make room for the exclamation icon */
+}
+
+/* Fix math alignment, see https://github.com/rtfd/sphinx_rtd_theme/pull/686 */
+.math {
+    text-align: unset;
+}
+</style>
+<section id="game-theory-model">
+<h1>Game Theory Model<a class="headerlink" href="#game-theory-model" title="Permalink to this heading"></a></h1>
+<section id="module-parameters">
+<span id="parameters"></span><h2>Parameters<a class="headerlink" href="#module-parameters" title="Permalink to this heading"></a></h2>
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.FIRST_YEAR">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">FIRST_YEAR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2020</span></em><a class="headerlink" href="#parameters.FIRST_YEAR" title="Permalink to this definition"></a></dt>
+<dd><p>Year of the first occurence of the game.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.FINAL_YEAR">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">FINAL_YEAR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2025</span></em><a class="headerlink" href="#parameters.FINAL_YEAR" title="Permalink to this definition"></a></dt>
+<dd><p>Year of the last occurence of the game.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.STEP">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">STEP</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">5</span></em><a class="headerlink" href="#parameters.STEP" title="Permalink to this definition"></a></dt>
+<dd><p>Number of years between two occurence of the game.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.T">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">T</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">37</span></em><a class="headerlink" href="#parameters.T" title="Permalink to this definition"></a></dt>
+<dd><p>Number of games played, given by int((FINAL_YEAR - FIRST_YEAR) / STEP) +1</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.INCREASE_CO2_RATIO">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">INCREASE_CO2_RATIO</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.04467676003648222</span></em><a class="headerlink" href="#parameters.INCREASE_CO2_RATIO" title="Permalink to this definition"></a></dt>
+<dd><p>Ratio of observed</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.CARBON_MODEL">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">CARBON_MODEL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;models.geophysic_models.carbon_cycle_models.Carbon_JOOS</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#parameters.CARBON_MODEL" title="Permalink to this definition"></a></dt>
+<dd><p>Default Carbon Model</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.TEMPERATURE_MODEL">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">TEMPERATURE_MODEL</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;models.geophysic_models.temperature_dynamic_model.Temp_Discret_Geoffroy</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#parameters.TEMPERATURE_MODEL" title="Permalink to this definition"></a></dt>
+<dd><p>Default Temperature Dynamic Model</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.SCM">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">SCM</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">&lt;models.geophysic_models.climate_model.Simple_Climate_Model</span> <span class="pre">object&gt;</span></em><a class="headerlink" href="#parameters.SCM" title="Permalink to this definition"></a></dt>
+<dd><p>Default Simple Climate Model</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.N">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">N</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">6</span></em><a class="headerlink" href="#parameters.N" title="Permalink to this definition"></a></dt>
+<dd><p>Default number of players</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.ACTION_SETS">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">ACTION_SETS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">array([[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span> <span class="pre">11.47],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">5.01],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">3.14],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">2.71],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">1.76],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">7.51]])</span></em><a class="headerlink" href="#parameters.ACTION_SETS" title="Permalink to this definition"></a></dt>
+<dd><p>Default action set of the players.</p>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r451198858bc9-1"><span class="brackets">1</span></dt>
+<dd><p>Hannah Ritchie, Max Roser and Pablo Rosado (2020) - “CO₂ and Greenhouse Gas Emissions”. Published online at OurWorldInData.org. Retrieved from: ‘<a class="reference external" href="https://ourworldindata.org/co2-and-other-greenhouse-gas-emissions">https://ourworldindata.org/co2-and-other-greenhouse-gas-emissions</a>’ [Online Resource]
+<a class="reference external" href="https://ourworldindata.org/grapher/annual-co2-emissions-per-country?facet=none&amp;country=CHN~USA~European+Union+%2828%29~IND~RUS~Asia+%28excl.+China+and+India%29">https://ourworldindata.org/grapher/annual-co2-emissions-per-country?facet=none&amp;country=CHN~USA~European+Union+%2828%29~IND~RUS~Asia+%28excl.+China+and+India%29</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.DELTAS">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">DELTAS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">array([1.40351409,</span> <span class="pre">1.42587481,</span> <span class="pre">1.26517504,</span> <span class="pre">0.82337476,</span> <span class="pre">1.65533956,</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">1.40351409])</span></em><a class="headerlink" href="#parameters.DELTAS" title="Permalink to this definition"></a></dt>
+<dd><p>Default damage multiplier.</p>
+<p class="rubric">References</p>
+<dl class="citation">
+<dt class="label" id="r6f3d7ad68406-1"><span class="brackets">1</span></dt>
+<dd><p><a class="reference external" href="http://www.fund-model.org/MimiFUND.jl/latest/tables/#Table-RT:-Regional-temperature-conversion-factor-1">http://www.fund-model.org/MimiFUND.jl/latest/tables/#Table-RT:-Regional-temperature-conversion-factor-1</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.GDP_MAX">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">GDP_MAX</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">array([14.63,</span> <span class="pre">19.29,</span> <span class="pre">13.89,</span>&#160; <span class="pre">2.5</span> <span class="pre">,</span>&#160; <span class="pre">1.42,</span> <span class="pre">11.64])</span></em><a class="headerlink" href="#parameters.GDP_MAX" title="Permalink to this definition"></a></dt>
+<dd><p>Default maximum GDP
+.. rubric:: References</p>
+<dl class="citation">
+<dt class="label" id="rd87b951f1796-1"><span class="brackets">1</span></dt>
+<dd><p><a class="reference external" href="https://ourworldindata.org/grapher/gross-domestic-product?tab=chart&amp;time=latest&amp;facet=none&amp;country=CHN~USA~European+Union+%2828%29~IND~RUS~Asia+%28excl.+China+and+India%29~OWID_WRL~Africa~South+America+%28GCP%29~CAN~European+Union~East+Asia+and+Pacific">https://ourworldindata.org/grapher/gross-domestic-product?tab=chart&amp;time=latest&amp;facet=none&amp;country=CHN~USA~European+Union+%2828%29~IND~RUS~Asia+%28excl.+China+and+India%29~OWID_WRL~Africa~South+America+%28GCP%29~CAN~European+Union~East+Asia+and+Pacific</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.NAMES">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">NAMES</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">['player</span> <span class="pre">0',</span> <span class="pre">'player</span> <span class="pre">1',</span> <span class="pre">'player</span> <span class="pre">2',</span> <span class="pre">'player</span> <span class="pre">3',</span> <span class="pre">'player</span> <span class="pre">4',</span> <span class="pre">'player</span> <span class="pre">5']</span></em><a class="headerlink" href="#parameters.NAMES" title="Permalink to this definition"></a></dt>
+<dd><p>Names of the players</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.BENEFITS">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">BENEFITS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[&lt;function</span> <span class="pre">benefit_affine&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_affine&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_affine&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_affine&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_affine&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_affine&gt;]</span></em><a class="headerlink" href="#parameters.BENEFITS" title="Permalink to this definition"></a></dt>
+<dd><p>Default list of benefit function, the benefit functions are affine.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.BENEFITS_CONCAVE">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">BENEFITS_CONCAVE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[&lt;function</span> <span class="pre">benefit_quadratic_concave&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_quadratic_concave&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_quadratic_concave&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_quadratic_concave&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_quadratic_concave&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_quadratic_concave&gt;]</span></em><a class="headerlink" href="#parameters.BENEFITS_CONCAVE" title="Permalink to this definition"></a></dt>
+<dd><p>Shortcut for a list of benefit function, the benefit functions are concave.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.BENEFITS_SIGMOID">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">BENEFITS_SIGMOID</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[&lt;function</span> <span class="pre">benefit_sigm&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_sigm&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_sigm&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_sigm&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_sigm&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_sigm&gt;]</span></em><a class="headerlink" href="#parameters.BENEFITS_SIGMOID" title="Permalink to this definition"></a></dt>
+<dd><p>Shortcut for a list of benefit function, the benefit functions are sigmoidal</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.BENEFITS_CONVEX">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">BENEFITS_CONVEX</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[&lt;function</span> <span class="pre">benefit_quadratic_convex_with_percentage_green&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_quadratic_convex_with_percentage_green&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_quadratic_convex_with_percentage_green&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_quadratic_convex_with_percentage_green&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_quadratic_convex_with_percentage_green&gt;,</span> <span class="pre">&lt;function</span> <span class="pre">benefit_quadratic_convex_with_percentage_green&gt;]</span></em><a class="headerlink" href="#parameters.BENEFITS_CONVEX" title="Permalink to this definition"></a></dt>
+<dd><p>Shortcut for a list of benefit function, the benefit functions are convex.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="parameters.DAMAGE">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">DAMAGE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sum_action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="climate_model.html#models.geophysic_models.carbon_cycle_models.Linear_Carbon_Model" title="models.geophysic_models.carbon_cycle_models.Linear_Carbon_Model"><span class="pre">Linear_Carbon_Model</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#parameters.DAMAGE" title="Permalink to this definition"></a></dt>
+<dd><p>Default damage function, the damage function is expressed in % of GDP loss.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.ALPHA">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">ALPHA</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">1</span></em><a class="headerlink" href="#parameters.ALPHA" title="Permalink to this definition"></a></dt>
+<dd><p>Dafault alpha set to 1.</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.INCREASE_COEF_CO2_RATIO">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">INCREASE_COEF_CO2_RATIO</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[0.04467676003648222,</span> <span class="pre">0.04467676003648222,</span> <span class="pre">0,</span> <span class="pre">0.04467676003648222,</span> <span class="pre">0.04467676003648222,</span> <span class="pre">0.04467676003648222]</span></em><a class="headerlink" href="#parameters.INCREASE_COEF_CO2_RATIO" title="Permalink to this definition"></a></dt>
+<dd><p>Default increasing ratio of CO2 emission from a year to a other. currently wrong</p>
+</dd></dl>
+
+<dl class="py data">
+<dt class="sig sig-object py" id="parameters.PERCENTAGES_GREEN">
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">PERCENTAGES_GREEN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">[0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0,</span> <span class="pre">0]</span></em><a class="headerlink" href="#parameters.PERCENTAGES_GREEN" title="Permalink to this definition"></a></dt>
+<dd><p>Default list of the percentage of GDP of the players being noncarbonated.</p>
+</dd></dl>
+
+</section>
+<section id="module-models.game_theory_model.benefit_function">
+<span id="benefit-functions"></span><h2>Benefit Functions<a class="headerlink" href="#module-models.game_theory_model.benefit_function" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="models.game_theory_model.benefit_function.polynome">
+<span class="sig-prename descclassname"><span class="pre">models.game_theory_model.benefit_function.</span></span><span class="sig-name descname"><span class="pre">polynome</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coefficients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">callable</span></span></span><a class="headerlink" href="#models.game_theory_model.benefit_function.polynome" title="Permalink to this definition"></a></dt>
+<dd><p>Polynomial benefit function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>coefficients</strong><span class="classifier">np.ndarray</span></dt><dd><p>Coeffiecients of the polynomial.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>callable</dt><dd><p>Benefit function.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.game_theory_model.benefit_function.benefit_affine">
+<span class="sig-prename descclassname"><span class="pre">models.game_theory_model.benefit_function.</span></span><span class="sig-name descname"><span class="pre">benefit_affine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">GDP_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentage_green</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#models.game_theory_model.benefit_function.benefit_affine" title="Permalink to this definition"></a></dt>
+<dd><p>Basic affine benefit funtion. This function attain its maximum at maximum emsission.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>GDP_max</strong><span class="classifier">float</span></dt><dd><p>Maximum GDP attainable.</p>
+</dd>
+<dt><strong>e_max</strong><span class="classifier">float</span></dt><dd><p>Maximum emission.</p>
+</dd>
+<dt><strong>percentage_green</strong><span class="classifier">float, optional</span></dt><dd><p>Percentage of the benefit function independant of CO2, by default 0</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>callable</dt><dd><p>Benefit function taking into argument CO2 emissions.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The function is given by</p>
+<div class="math notranslate nohighlight">
+\[B(X) = \frac{GDP_{max} (1 - \%_{green})}{e_{max}} X + GDP_{max} \%_{green}\]</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.game_theory_model.benefit_function.benefit_quadratic_concave">
+<span class="sig-prename descclassname"><span class="pre">models.game_theory_model.benefit_function.</span></span><span class="sig-name descname"><span class="pre">benefit_quadratic_concave</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">GDP_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentage_green</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">callable</span></span></span><a class="headerlink" href="#models.game_theory_model.benefit_function.benefit_quadratic_concave" title="Permalink to this definition"></a></dt>
+<dd><p>Basic concave benefit funtion. This function attain its maximum at maximum emsission.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>GDP_max</strong><span class="classifier">float</span></dt><dd><p>Maximum GDP attainable.</p>
+</dd>
+<dt><strong>e_max</strong><span class="classifier">float</span></dt><dd><p>Maximum emission.</p>
+</dd>
+<dt><strong>percentage_green</strong><span class="classifier">float, optional</span></dt><dd><p>Percentage of the benefit function independant of CO2, by default 0</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>callable</dt><dd><p>Benefit function taking into argument CO2 emissions.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The function is given by</p>
+<div class="math notranslate nohighlight">
+\[B(X) = -\frac{GDP_{max} (1 - \%_{green})}{e_{max}^2} X^2 + 2 \frac{GDP_{max} (1 - \%_{green})}{e_{max}} X + GDP_{max} \%_{green}\]</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.game_theory_model.benefit_function.benefit_quadratic_convex">
+<span class="sig-prename descclassname"><span class="pre">models.game_theory_model.benefit_function.</span></span><span class="sig-name descname"><span class="pre">benefit_quadratic_convex</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">GDP_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentage_green</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">callable</span></span></span><a class="headerlink" href="#models.game_theory_model.benefit_function.benefit_quadratic_convex" title="Permalink to this definition"></a></dt>
+<dd><p>Basic convex benefit funtion. This function attain its maximum at maximum emsission.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>GDP_max</strong><span class="classifier">float</span></dt><dd><p>Maximum GDP attainable.</p>
+</dd>
+<dt><strong>e_max</strong><span class="classifier">float</span></dt><dd><p>Maximum emission.</p>
+</dd>
+<dt><strong>percentage_green</strong><span class="classifier">float, optional</span></dt><dd><p>Percentage of the benefit function independant of CO2, by default 0</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>callable</dt><dd><p>Benefit function taking into argument CO2 emissions.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The function is given by</p>
+<div class="math notranslate nohighlight">
+\[B(X) = \frac{GDP_{max} (1 - \%_{green})}{e_{max}^2} X^2 + GDP_{max} \%_{green}\]</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="models.game_theory_model.benefit_function.benefit_sigm">
+<span class="sig-prename descclassname"><span class="pre">models.game_theory_model.benefit_function.</span></span><span class="sig-name descname"><span class="pre">benefit_sigm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">GDP_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">e_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentage_green</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">power</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#models.game_theory_model.benefit_function.benefit_sigm" title="Permalink to this definition"></a></dt>
+<dd><p>Basic sigmoidal benefit funtion. This function attain its maximum at maximum emsission.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>GDP_max</strong><span class="classifier">float</span></dt><dd><p>Maximum GDP attainable.</p>
+</dd>
+<dt><strong>e_max</strong><span class="classifier">float</span></dt><dd><p>Maximum emission.</p>
+</dd>
+<dt><strong>percentage_green</strong><span class="classifier">int, optional</span></dt><dd><p>Percentage of the benefit function independant of CO2, by default 0</p>
+</dd>
+<dt><strong>power</strong><span class="classifier">float, optional</span></dt><dd><p>Power p of the sigmoid, by default 10</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>callable</dt><dd><p>Benefit function taking into argument CO2 emissions.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The function is given by</p>
+<div class="math notranslate nohighlight">
+\[B(X) = (\frac{1 - e^{-X}}{1 - e^{e_{max}}})^{p} GDP_{max} (1 - \%_{green}) +  GDP_{max} \%_{green}\]</div>
+</dd></dl>
+
+</section>
+<section id="module-models.game_theory_model.damage_function">
+<span id="damage-functions"></span><h2>Damage Functions<a class="headerlink" href="#module-models.game_theory_model.damage_function" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="models.game_theory_model.damage_function.damage_polynome">
+<span class="sig-prename descclassname"><span class="pre">models.game_theory_model.damage_function.</span></span><span class="sig-name descname"><span class="pre">damage_polynome</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coefficients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">callable</span></span></span><a class="headerlink" href="#models.game_theory_model.damage_function.damage_polynome" title="Permalink to this definition"></a></dt>
+<dd><p>Function which create a damage function.</p>
+<dl class="field-list">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>coefficients</strong><span class="classifier">np.ndarray</span></dt><dd><p>Coefficient of the polynoial.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl>
+<dt>callable</dt><dd><p>Damage function.</p>
+<p>Parameters</p>
+<dl class="simple">
+<dt>sum_action<span class="classifier">float</span></dt><dd><p>The total emissions of all players.</p>
+</dd>
+</dl>
+<p>Returns</p>
+<dl class="simple">
+<dt>float</dt><dd><p>Damage for a given emission.</p>
+</dd>
+</dl>
+<p>Returns Other Parameters</p>
+<dl class="simple">
+<dt>scm<span class="classifier">Simple_Climate_Model</span></dt><dd><p>Simple Climate model.</p>
+</dd>
+<dt>temp<span class="classifier">float</span></dt><dd><p>Atmospheric temperature.</p>
+</dd>
+<dt>GDP_max<span class="classifier">float</span></dt><dd><p>Maximum GDP attainable.</p>
+</dd>
+<dt><a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs<span class="classifier">dict, optional</span></dt><dd><p>Extra arguments to damage function.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-models.game_theory_model.player">
+<span id="player-object"></span><h2>Player Object<a class="headerlink" href="#module-models.game_theory_model.player" title="Permalink to this heading"></a></h2>
+<p>A player class.</p>
+<p>Here we create a player class where wa concatenate characteristics of a player:</p>
+<ul class="simple">
+<li><p>Action set</p></li>
+<li><p>Utility function</p></li>
+<li><p>etc..</p></li>
+</ul>
+<dl class="py class">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">models.game_theory_model.player.</span></span><span class="sig-name descname"><span class="pre">player_class</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_set</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benefit_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GDP_initial</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damage_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">impact_factor_of_temperature</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="climate_model.html#models.geophysic_models.climate_model.Simple_Climate_Model" title="models.geophysic_models.climate_model.Simple_Climate_Model"><span class="pre">Simple_Climate_Model</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">SCM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">increase_co2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">INCREASE_CO2_RATIO</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentage_green</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damage_in_percentage</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#models.game_theory_model.player.player_class" title="Permalink to this definition"></a></dt>
+<dd><p>Class of a player.</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#models.game_theory_model.player.player_class.best_response_one_shot" title="models.game_theory_model.player.player_class.best_response_one_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">best_response_one_shot</span></code></a>(sum_other_actions)</p></td>
+<td><p>Best Response function of the player for a given sum of other players emissions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.game_theory_model.player.player_class.reset" title="models.game_theory_model.player.player_class.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>()</p></td>
+<td><p>Function which reset the player and the SCM.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#models.game_theory_model.player.player_class.reset_player" title="models.game_theory_model.player.player_class.reset_player"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_player</span></code></a>()</p></td>
+<td><p>Function which reset the player to the inital state.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.game_theory_model.player.player_class.reset_scm" title="models.game_theory_model.player.player_class.reset_scm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset_scm</span></code></a>()</p></td>
+<td><p>Function which reset the SCM of the player.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#models.game_theory_model.player.player_class.simulate_update_player" title="models.game_theory_model.player.player_class.simulate_update_player"><code class="xref py py-obj docutils literal notranslate"><span class="pre">simulate_update_player</span></code></a>(previous_emission, ...)</p></td>
+<td><p>IN PROGRESS</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.game_theory_model.player.player_class.update_player" title="models.game_theory_model.player.player_class.update_player"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_player</span></code></a>(previous_emission)</p></td>
+<td><p>Function which update the player from a previous state for a given previous emission.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#models.game_theory_model.player.player_class.utility_n_shot" title="models.game_theory_model.player.player_class.utility_n_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utility_n_shot</span></code></a>(n, action, sum_other_actions)</p></td>
+<td><p>IN PROGRESS Utility of the player.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.game_theory_model.player.player_class.utility_one_shot" title="models.game_theory_model.player.player_class.utility_one_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">utility_one_shot</span></code></a>(action, sum_other_actions, ...)</p></td>
+<td><p>Utility of the player.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 58%" />
+<col style="width: 42%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>update_scm</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#models.game_theory_model.player.player_class.name" title="Permalink to this definition"></a></dt>
+<dd><p>Name of the player</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.action_set_initial">
+<span class="sig-name descname"><span class="pre">action_set_initial</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">tuple</span></em><a class="headerlink" href="#models.game_theory_model.player.player_class.action_set_initial" title="Permalink to this definition"></a></dt>
+<dd><p>Initial action set of the player (e_min, e_max)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.GDP_initial">
+<span class="sig-name descname"><span class="pre">GDP_initial</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#models.game_theory_model.player.player_class.GDP_initial" title="Permalink to this definition"></a></dt>
+<dd><p>Initial GDP of the player, i.e the maximum a player can attain with his benefit function.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.percentage_green">
+<span class="sig-name descname"><span class="pre">percentage_green</span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.percentage_green" title="Permalink to this definition"></a></dt>
+<dd><p>Percentage of the benefit being decarbonated.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.benefit_shape">
+<span class="sig-name descname"><span class="pre">benefit_shape</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">callable</span></em><a class="headerlink" href="#models.game_theory_model.player.player_class.benefit_shape" title="Permalink to this definition"></a></dt>
+<dd><p>Benefit function shape of the player, it takes as argument (GDP, e_max, percentage_green).</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.GDP_max">
+<span class="sig-name descname"><span class="pre">GDP_max</span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.GDP_max" title="Permalink to this definition"></a></dt>
+<dd><p>Current GDP of the player, i.e the maximum a player can attain with his benefit function.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.action_set">
+<span class="sig-name descname"><span class="pre">action_set</span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.action_set" title="Permalink to this definition"></a></dt>
+<dd><p>Current action set of the player (e_min, e_max)</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.scm">
+<span class="sig-name descname"><span class="pre">scm</span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.scm" title="Permalink to this definition"></a></dt>
+<dd><p>Simple Climate Model of the player</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.benefit_function">
+<span class="sig-name descname"><span class="pre">benefit_function</span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.benefit_function" title="Permalink to this definition"></a></dt>
+<dd><p>Current Benefit function of the player, it takes as argument emissions.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.damage_function">
+<span class="sig-name descname"><span class="pre">damage_function</span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.damage_function" title="Permalink to this definition"></a></dt>
+<dd><p>Damage function, it takes as argument emissions.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.delta">
+<span class="sig-name descname"><span class="pre">delta</span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.delta" title="Permalink to this definition"></a></dt>
+<dd><p>Temperature multiplier the player</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.alpha">
+<span class="sig-name descname"><span class="pre">alpha</span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.alpha" title="Permalink to this definition"></a></dt>
+<dd><p>Power of the damage function</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.increase_co2">
+<span class="sig-name descname"><span class="pre">increase_co2</span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.increase_co2" title="Permalink to this definition"></a></dt>
+<dd><p>Ration of player tend to increase his co2 emissions over a game if it polluted at maximum.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.damage_in_percentage">
+<span class="sig-name descname"><span class="pre">damage_in_percentage</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#models.game_theory_model.player.player_class.damage_in_percentage" title="Permalink to this definition"></a></dt>
+<dd><p>Specify if the damage is as percentage og GDP.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.reset_player">
+<span class="sig-name descname"><span class="pre">reset_player</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#models.game_theory_model.player.player_class.reset_player" title="Permalink to this definition"></a></dt>
+<dd><p>Function which reset the player to the inital state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.reset_scm">
+<span class="sig-name descname"><span class="pre">reset_scm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.reset_scm" title="Permalink to this definition"></a></dt>
+<dd><p>Function which reset the SCM of the player.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#models.game_theory_model.player.player_class.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Function which reset the player and the SCM.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.utility_one_shot">
+<span class="sig-name descname"><span class="pre">utility_one_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_other_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.utility_one_shot" title="Permalink to this definition"></a></dt>
+<dd><p>Utility of the player.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>action</strong><span class="classifier">float</span></dt><dd><p>Emission of the player.</p>
+</dd>
+<dt><strong>sum_other_actions</strong><span class="classifier">float</span></dt><dd><p>Emissions of other players.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>Utility of the player.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Other Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>GDP_max</strong><span class="classifier">float, optional</span></dt><dd><p>Maximum GDP attainable of the player. Often it will be remplace with self.GDP_max but in some case it’s usefull to have it as a parameter.</p>
+</dd>
+<dt><strong>temp</strong><span class="classifier">float, optional</span></dt><dd><p>Current temperature. If not provided, the player will generate a temperature with the given actions with the SCM. If given, it speed up the calculs, by default None</p>
+</dd>
+<dt><strong>scm</strong><span class="classifier">optional</span></dt><dd><p>SCM used by the player. If not provided, the player will generate a temperature with the given actions with this specific SCM.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.utility_n_shot">
+<span class="sig-name descname"><span class="pre">utility_n_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_other_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.utility_n_shot" title="Permalink to this definition"></a></dt>
+<dd><p>IN PROGRESS Utility of the player.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>action</strong><span class="classifier">float</span></dt><dd><p>Emission of the player.</p>
+</dd>
+<dt><strong>sum_other_actions</strong><span class="classifier">float</span></dt><dd><p>Emissions of other players.</p>
+</dd>
+<dt><strong>GDP_max</strong><span class="classifier">float</span></dt><dd><p>Maximum GDP attainable of the player. Often it will be remplace with self.GDP_max but in some case it’s usefull to have it as a parameter.</p>
+</dd>
+<dt><strong>temp</strong><span class="classifier">float, optional</span></dt><dd><p>Current temperature. If not provided, the player will generate a temperature with the given actions with the SCM. If given, it speed up the calculs, by default None</p>
+</dd>
+<dt><strong>scm</strong><span class="classifier">bool, optional</span></dt><dd><p>SCM used by the player. If not provided, the player will generate a temperature with the given actions with this specific SCM, by default False</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>_description_</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.best_response_one_shot">
+<span class="sig-name descname"><span class="pre">best_response_one_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sum_other_actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.best_response_one_shot" title="Permalink to this definition"></a></dt>
+<dd><p>Best Response function of the player for a given sum of other players emissions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>sum_other_actions</strong><span class="classifier">float</span></dt><dd><p>The sum of the others players emissions.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float</dt><dd><p>The best response of the player for a sum of other players emissions.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>We use minimise scalar with the following parameters
+(response, bounds=self.action_set, method=’bounded’, options={‘xatol’: 1e-05, ‘maxiter’: 1000, ‘disp’: 0}),
+where response is equal to minus the utility of the player.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.update_player">
+<span class="sig-name descname"><span class="pre">update_player</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">previous_emission</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#models.game_theory_model.player.player_class.update_player" title="Permalink to this definition"></a></dt>
+<dd><p>Function which update the player from a previous state for a given previous emission.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>previous_emission</strong><span class="classifier">float</span></dt><dd><p>Emission of the players in the previous iteration of the game.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Main place for improvement.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game_theory_model.player.player_class.simulate_update_player">
+<span class="sig-name descname"><span class="pre">simulate_update_player</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">previous_emission</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">action_set</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">GDP_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">percentage_green</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#models.game_theory_model.player.player_class.simulate_update_player" title="Permalink to this definition"></a></dt>
+<dd><p>IN PROGRESS</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>previous_emission</strong><span class="classifier">float</span></dt><dd><p>_description_</p>
+</dd>
+<dt><strong>action_set</strong><span class="classifier">np.ndarray</span></dt><dd><p>_description_</p>
+</dd>
+<dt><strong>GDP_max</strong><span class="classifier">float</span></dt><dd><p>_description_</p>
+</dd>
+<dt><strong>percentage_green</strong><span class="classifier">_type_</span></dt><dd><p>_description_</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>_type_</dt><dd><p>_description_</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-models.game">
+<span id="game-model"></span><h2>Game Model<a class="headerlink" href="#module-models.game" title="Permalink to this heading"></a></h2>
+<p>Test.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="models.game.create_players">
+<span class="sig-prename descclassname"><span class="pre">models.game.</span></span><span class="sig-name descname"><span class="pre">create_players</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_of_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">NAMES</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_action_sets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">ACTION_SETS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_benefit_functions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">callable</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">BENEFITS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_GDP_initial</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">GDP_MAX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">damage_function</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DAMAGE</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">ALPHA</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_deltas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DELTAS</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_coef_increase_co2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">INCREASE_COEF_CO2_RATIO</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">list_percentage_green</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">PERCENTAGES_GREEN</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#models.game.create_players" title="Permalink to this definition"></a></dt>
+<dd><p>Function which generate a list of players.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>list_of_names</strong><span class="classifier">list[str], optional</span></dt><dd><p>The list of name for the players, by default NAMES</p>
+</dd>
+<dt><strong>list_action_sets</strong><span class="classifier">list[tuple], optional</span></dt><dd><p>The list of action set (e_min, ,e_max) for the players, by default ACTION_SETS</p>
+</dd>
+<dt><strong>list_benefit_functions</strong><span class="classifier">list[callable], optional</span></dt><dd><p>The list of benefit function shape for the player, by default BENEFITS</p>
+</dd>
+<dt><strong>list_GDP_initial</strong><span class="classifier">list[float], optional</span></dt><dd><p>The list of inital maximum GDP for the players, by default GDP_MAX</p>
+</dd>
+<dt><strong>damage_function</strong><span class="classifier">callable, optional</span></dt><dd><p>The damage function players will have. It’s the same for every players, by default DAMAGE</p>
+</dd>
+<dt><strong>alpha</strong><span class="classifier">float, optional</span></dt><dd><p>Power of the damage function, by default ALPHA</p>
+</dd>
+<dt><strong>list_deltas</strong><span class="classifier">list[float], optional</span></dt><dd><p>The list of the temperature multiplier for the players, by default DELTAS</p>
+</dd>
+<dt><strong>list_coef_increase_co2</strong><span class="classifier">list[float], optional</span></dt><dd><p>The list of the coefficient for increasing emission after playing the game one, by default INCREASE_COEF_CO2_RATIO</p>
+</dd>
+<dt><strong>list_percentage_green</strong><span class="classifier">list[float], optional</span></dt><dd><p>The list of the percentage of the benefits of players being decarbonated, by default PERCENTAGES_GREEN</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>list</dt><dd><p>A list of players.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="models.game.Game">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">models.game.</span></span><span class="sig-name descname"><span class="pre">Game</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">list_players</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#models.game_theory_model.player.player_class" title="models.game_theory_model.player.player_class"><span class="pre">models.game_theory_model.player.player_class</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="climate_model.html#models.geophysic_models.climate_model.Simple_Climate_Model" title="models.geophysic_models.climate_model.Simple_Climate_Model"><span class="pre">Simple_Climate_Model</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">SCM</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exogeneous_emission</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">E_EX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">exogeneous_radiative_forcing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">F_EX</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">horizon</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">FINAL_YEAR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initial_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">FIRST_YEAR</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#models.game.Game" title="Permalink to this definition"></a></dt>
+<dd><p>Test</p>
+<p class="rubric">Methods</p>
+<table class="autosummary longtable docutils align-default">
+<colgroup>
+<col style="width: 10%" />
+<col style="width: 90%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#models.game.Game.best_response_dynamic_one_shot" title="models.game.Game.best_response_dynamic_one_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">best_response_dynamic_one_shot</span></code></a>([...])</p></td>
+<td><p>Best Response Dynamic function which allow us to find Nash equilibria.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.game.Game.get_GDP_max" title="models.game.Game.get_GDP_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_GDP_max</span></code></a>()</p></td>
+<td><p>Function which extract the maximum GDP of the players of the game at current state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#models.game.Game.get_action_space" title="models.game.Game.get_action_space"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_action_space</span></code></a>()</p></td>
+<td><p>Function which extract the action sets of the players of the game at current state.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.game.Game.get_players_utilities" title="models.game.Game.get_players_utilities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_players_utilities</span></code></a>()</p></td>
+<td><p>Function which extract utility functions of the players.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#models.game.Game.repeated_one_shot_game" title="models.game.Game.repeated_one_shot_game"><code class="xref py py-obj docutils literal notranslate"><span class="pre">repeated_one_shot_game</span></code></a>(rule)</p></td>
+<td><p>Function which simulate repetition of the one shot game for a given solution concept.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.game.Game.reset" title="models.game.Game.reset"><code class="xref py py-obj docutils literal notranslate"><span class="pre">reset</span></code></a>()</p></td>
+<td><p>Function which reset the game.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#models.game.Game.update_player" title="models.game.Game.update_player"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_player</span></code></a>(actions)</p></td>
+<td><p>Function which update the player with respect to their previous actions.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.game.Game.update_players_scm" title="models.game.Game.update_players_scm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">update_players_scm</span></code></a>()</p></td>
+<td><p>Function that update the SCM of players with the current states of the game SCM.</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default">
+<colgroup>
+<col style="width: 83%" />
+<col style="width: 17%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p><strong>business_as_usual</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>fct_sum_utilities_one_shot</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>one_shot_game</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>one_shot_game_with_strategies_profile</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>repeated_one_shot_game_BAU</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>repeated_one_shot_game_NE</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>repeated_one_shot_game_SO</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>repeated_one_shot_game_with_strategies_profile</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>social_optimum_one_shot</strong></p></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game.Game.N">
+<span class="sig-name descname"><span class="pre">N</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#models.game.Game.N" title="Permalink to this definition"></a></dt>
+<dd><p>Number of player in the game</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game.Game.T">
+<span class="sig-name descname"><span class="pre">T</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#models.game.Game.T" title="Permalink to this definition"></a></dt>
+<dd><p>Number of time the game is repeated</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game.Game.scm_game">
+<span class="sig-name descname"><span class="pre">scm_game</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="climate_model.html#models.geophysic_models.climate_model.Simple_Climate_Model" title="models.geophysic_models.climate_model.Simple_Climate_Model"><span class="pre">Simple_Climate_Model</span></a></em><a class="headerlink" href="#models.game.Game.scm_game" title="Permalink to this definition"></a></dt>
+<dd><p>Simple eClimate model of the game.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game.Game.ex_e">
+<span class="sig-name descname"><span class="pre">ex_e</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#models.game.Game.ex_e" title="Permalink to this definition"></a></dt>
+<dd><p>Exogeneous emission during the repetition of the game.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game.Game.ex_f">
+<span class="sig-name descname"><span class="pre">ex_f</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></em><a class="headerlink" href="#models.game.Game.ex_f" title="Permalink to this definition"></a></dt>
+<dd><p>Exogeneous radiative forcing during the repetion of the game.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="models.game.Game.list_players">
+<span class="sig-name descname"><span class="pre">list_players</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#models.game_theory_model.player.player_class" title="models.game_theory_model.player.player_class"><span class="pre">models.game_theory_model.player.player_class</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#models.game.Game.list_players" title="Permalink to this definition"></a></dt>
+<dd><p>List of player in the game with their characteristics.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game.Game.reset">
+<span class="sig-name descname"><span class="pre">reset</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#models.game.Game.reset" title="Permalink to this definition"></a></dt>
+<dd><p>Function which reset the game. i.e. It reset the SCM of the game, the SCM of the players and the player themselve.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game.Game.update_player">
+<span class="sig-name descname"><span class="pre">update_player</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#models.game.Game.update_player" title="Permalink to this definition"></a></dt>
+<dd><p>Function which update the player with respect to their previous actions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>actions</strong><span class="classifier">np.ndarray</span></dt><dd><p>Previous actions of the players.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game.Game.update_players_scm">
+<span class="sig-name descname"><span class="pre">update_players_scm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#models.game.Game.update_players_scm" title="Permalink to this definition"></a></dt>
+<dd><p>Function that update the SCM of players with the current states of the game SCM.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game.Game.get_players_utilities">
+<span class="sig-name descname"><span class="pre">get_players_utilities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#models.game.Game.get_players_utilities" title="Permalink to this definition"></a></dt>
+<dd><p>Function which extract utility functions of the players.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>list(callable)</dt><dd><p>List of the utility functions of the players of the game at current state.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game.Game.get_action_space">
+<span class="sig-name descname"><span class="pre">get_action_space</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#models.game.Game.get_action_space" title="Permalink to this definition"></a></dt>
+<dd><p>Function which extract the action sets of the players of the game at current state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>np.ndarray</dt><dd><p>Array describing the action set <span class="math notranslate nohighlight">\(\mathcal{A}\)</span> of the game.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game.Game.get_GDP_max">
+<span class="sig-name descname"><span class="pre">get_GDP_max</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="headerlink" href="#models.game.Game.get_GDP_max" title="Permalink to this definition"></a></dt>
+<dd><p>Function which extract the maximum GDP of the players of the game at current state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>np.ndarray</dt><dd><p>Array of GDP_max.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game.Game.repeated_one_shot_game">
+<span class="sig-name descname"><span class="pre">repeated_one_shot_game</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">rule</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">callable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#models.game.Game.repeated_one_shot_game" title="Permalink to this definition"></a></dt>
+<dd><p>Function which simulate repetition of the one shot game for a given solution concept. For example,
+Nash equilibria, Social optimum,…</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>rule</strong><span class="classifier">callable</span></dt><dd><p>The solution concept used.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>a_p</strong><span class="classifier">np.ndarray</span></dt><dd><p>Actions profile of the players allong the game. A (N,T) array.</p>
+</dd>
+<dt><strong>sum_a_p</strong><span class="classifier">np.ndarray</span></dt><dd><p>Sum of the actions profile of the players allong the game. A (T) array.</p>
+</dd>
+<dt><strong>u_val_p</strong><span class="classifier">np.ndarray</span></dt><dd><p>Value of utilities of the players allong the game. A (N,T) array.</p>
+</dd>
+<dt><strong>u_fct_p</strong><span class="classifier">list(callable)</span></dt><dd><p>Utility functions of the players allong the game. A list of lenght T where each element is a list of lenght N of callable.
+u_fct_p[t][n] is the utility function of player n at time t.</p>
+</dd>
+<dt><strong>sum_u_val_p</strong><span class="classifier">np.ndarray</span></dt><dd><p>Sum of the utilities of the players allong the game. A (T) array.</p>
+</dd>
+<dt><strong>a_space_p</strong><span class="classifier">np.ndarray</span></dt><dd><p>Actions space of the players allong the game. A (N,T) array.</p>
+</dd>
+<dt><strong>temp_p</strong><span class="classifier">np.ndarry</span></dt><dd><p>Global mean atmospheric temperature profile allong the game. A (T) array.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game.Game.best_response_dynamic_one_shot">
+<span class="sig-name descname"><span class="pre">best_response_dynamic_one_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step_criterion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utility_criterion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#models.game.Game.best_response_dynamic_one_shot" title="Permalink to this definition"></a></dt>
+<dd><p>Best Response Dynamic function which allow us to find Nash equilibria.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>step_criterion</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum number of iteration of the Best Response Dynamic before stoping, by default 100</p>
+</dd>
+<dt><strong>utility_criterion</strong><span class="classifier">float, optional</span></dt><dd><p>Minimal difference between two step we need to obtain before stoping, by default 0.0001</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>np.ndarray</dt><dd><p>End point of the BRD.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="climate_model.html" class="btn btn-neutral float-left" title="Climate Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="notebooks.html" class="btn btn-neutral float-right" title="Notebooks" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022, Anthony Couthures.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
