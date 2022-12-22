@@ -5,4 +5,4 @@ Notebooks
     :maxdepth: 2
     :caption: Contents:
 
-    notebooks/all_plot_possible
+    notebooks/example
