@@ -340,14 +340,14 @@ def plot_Game(game : Game, plot_nash : bool, plot_SO : bool, plot_bau : bool,
 
     if plot_nash:
         game.repeated_one_shot_game_NE()
+        print('Utilities')
 
         plot_utilities(game.list_players, game.ne_u_p, figsize, name, sav)
-        # print('utilities')
         # plot_player_indice_utility_shape(indice,game.list_players, game.ne_a_p, game.ne_sum_a_p, game.ne_temp_p, figsize, name, print_title, sav)
         # print('utility shape')
-
+        
+        print('Nash equilibrium action profile')
         plot_action_profile(game.list_players, game.ne_a_p, game.ne_a_space_p, figsize, name, sav)
-        # print('action profile')
         list_action_with_label.append(('NE', game.ne_a_p, game.ne_a_space_p, 'solid', 0.9, 'dotted'))
         list_utilities_with_label.append(('NE', game.ne_u_p, 'solid', 0.9))
 
@@ -355,9 +355,11 @@ def plot_Game(game : Game, plot_nash : bool, plot_SO : bool, plot_bau : bool,
         # print('plot_nash')
     if plot_SO :
         game.repeated_one_shot_game_SO()
+        print('Utilities')
 
         plot_utilities(game.list_players, game.so_u_p, figsize, name+'_so', sav)
         # print('utilities')
+        print('Social Optimum action profile')
 
         plot_action_profile(game.list_players, game.so_a_p, game.so_a_space_p, figsize, name+'_so', sav)
         # print('action profile')
@@ -373,9 +375,13 @@ def plot_Game(game : Game, plot_nash : bool, plot_SO : bool, plot_bau : bool,
         list_temp_with_label.append(('BAU', game.bau_temp_p, '-'))
         # print('plot_BAU')
 
-
+    print('Temperatures')
     plot_list_temp_profile(list_temp_with_label, figsize, name, sav)
+    
+    print('All action profiles')
     plot_list_action_profile(list_action_with_label, figsize, name, sav)
+
+    print('All utilities profiles')    
     plot_list_utilities_profile(list_utilities_with_label, figsize, name, sav)
 
 

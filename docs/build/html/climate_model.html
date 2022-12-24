@@ -127,6 +127,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_cycle"><code class="docutils literal notranslate"><span class="pre">Carbon_JOOS.five_years_cycle()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_cycle_"><code class="docutils literal notranslate"><span class="pre">Carbon_JOOS.five_years_cycle_()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.atmospheric_carbon"><code class="docutils literal notranslate"><span class="pre">Carbon_JOOS.atmospheric_carbon()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_atmospheric_carbon_old"><code class="docutils literal notranslate"><span class="pre">Carbon_JOOS.five_years_atmospheric_carbon_old()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_atmospheric_carbon"><code class="docutils literal notranslate"><span class="pre">Carbon_JOOS.five_years_atmospheric_carbon()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.n_years_cycle"><code class="docutils literal notranslate"><span class="pre">Carbon_JOOS.n_years_cycle()</span></code></a></li>
 </ul>
@@ -187,6 +188,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#models.geophysic_models.temperature_dynamic_model.Temp_Discret_Geoffroy.At5"><code class="docutils literal notranslate"><span class="pre">Temp_Discret_Geoffroy.At5</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#models.geophysic_models.temperature_dynamic_model.Temp_Discret_Geoffroy.d5"><code class="docutils literal notranslate"><span class="pre">Temp_Discret_Geoffroy.d5</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#models.geophysic_models.temperature_dynamic_model.Temp_Discret_Geoffroy.five_years_cycle"><code class="docutils literal notranslate"><span class="pre">Temp_Discret_Geoffroy.five_years_cycle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.geophysic_models.temperature_dynamic_model.Temp_Discret_Geoffroy.five_years_atmospheric_temperature"><code class="docutils literal notranslate"><span class="pre">Temp_Discret_Geoffroy.five_years_atmospheric_temperature()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -214,7 +216,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="game_model.html">Game Theory Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="notebooks.html">Notebooks</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
 </ul>
 
         </div>
@@ -924,19 +926,22 @@ for the year 2020.</p>
 <tr class="row-even"><td><p><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_atmospheric_carbon" title="models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_atmospheric_carbon"><code class="xref py py-obj docutils literal notranslate"><span class="pre">five_years_atmospheric_carbon</span></code></a>(emission, state)</p></td>
 <td><p>Function that calculate the CO2 concentration in the atmosphere after 5 years from a initial state.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_cycle" title="models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_cycle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">five_years_cycle</span></code></a>(emission, state)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_atmospheric_carbon_old" title="models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_atmospheric_carbon_old"><code class="xref py py-obj docutils literal notranslate"><span class="pre">five_years_atmospheric_carbon_old</span></code></a>(emission, ...)</p></td>
+<td><p>Function that calculate the CO2 concentration in the atmosphere after 5 years from a initial state.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_cycle" title="models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_cycle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">five_years_cycle</span></code></a>(emission, state)</p></td>
 <td><p>Function which return the Carbon state in GtC after five years for a given emission per years.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_cycle_" title="models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_cycle_"><code class="xref py py-obj docutils literal notranslate"><span class="pre">five_years_cycle_</span></code></a>(emission, state)</p></td>
+<tr class="row-odd"><td><p><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_cycle_" title="models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_cycle_"><code class="xref py py-obj docutils literal notranslate"><span class="pre">five_years_cycle_</span></code></a>(emission, state)</p></td>
 <td><p>Function that calculate one cycle of carbon for a timestep of 5 years with the JOOS carbon cycle with zero order hold assumption.</p></td>
 </tr>
-<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_carbon_cycle</span></code>(initial_state)</p></td>
+<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">init_carbon_cycle</span></code>(initial_state)</p></td>
 <td><p>Function which initialize the Carbon Cycle from a given state.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">n_years_atmospheric_carbon</span></code>(n, emission, state)</p></td>
+<tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">n_years_atmospheric_carbon</span></code>(n, emission, state)</p></td>
 <td><p>Function which return the Carbon in the atmosphere in GtC after five years for a given emission.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.n_years_cycle" title="models.geophysic_models.carbon_cycle_models.Carbon_JOOS.n_years_cycle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">n_years_cycle</span></code></a>(n, emission)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.n_years_cycle" title="models.geophysic_models.carbon_cycle_models.Carbon_JOOS.n_years_cycle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">n_years_cycle</span></code></a>(n, emission)</p></td>
 <td><p>Function which return the Carbon state in GtC after <span class="math notranslate nohighlight">\(n\)</span> years for a given emission per years.</p></td>
 </tr>
 </tbody>
@@ -1033,6 +1038,24 @@ for the year 2020.</p>
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">
 <dt><strong>state (np.ndarray): Initial CO2 concentration in the 5 boxes</strong></dt><dd></dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>float: Carbon in the atmosphere after 5 years in GtC</dt><dd></dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_atmospheric_carbon_old">
+<span class="sig-name descname"><span class="pre">five_years_atmospheric_carbon_old</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">emission</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#models.geophysic_models.carbon_cycle_models.Carbon_JOOS.five_years_atmospheric_carbon_old" title="Permalink to this definition"></a></dt>
+<dd><p>Function that calculate the CO2 concentration in the atmosphere after 5 years from a initial state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>emission (float): Emissions over the five years in GtCO2/year</strong></dt><dd></dd>
 </dl>
 </dd>
 <dt class="field-even">Returns</dt>
@@ -1550,7 +1573,7 @@ for the year 2020.</p>
 <tr class="row-odd"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">atmospheric_temperature</span></code>(state)</p></td>
 <td><p>Function which return the atmospheric temperature variation A EXPLIQUER PLUS from a state.</p></td>
 </tr>
-<tr class="row-even"><td><p><code class="xref py py-obj docutils literal notranslate"><span class="pre">five_years_atmospheric_temperature</span></code>(forcing, ...)</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.geophysic_models.temperature_dynamic_model.Temp_Discret_Geoffroy.five_years_atmospheric_temperature" title="models.geophysic_models.temperature_dynamic_model.Temp_Discret_Geoffroy.five_years_atmospheric_temperature"><code class="xref py py-obj docutils literal notranslate"><span class="pre">five_years_atmospheric_temperature</span></code></a>(forcing, ...)</p></td>
 <td><p>Function which return the atmospheric temperature variation A EXPLIQUER PLUS after five years from a state for a given emission.</p></td>
 </tr>
 <tr class="row-odd"><td><p><a class="reference internal" href="#models.geophysic_models.temperature_dynamic_model.Temp_Discret_Geoffroy.five_years_cycle" title="models.geophysic_models.temperature_dynamic_model.Temp_Discret_Geoffroy.five_years_cycle"><code class="xref py py-obj docutils literal notranslate"><span class="pre">five_years_cycle</span></code></a>(forcing, state)</p></td>
@@ -1647,6 +1670,28 @@ for the year 2020.</p>
 <dt class="field-even">Returns</dt>
 <dd class="field-even"><dl class="simple">
 <dt><strong>state</strong><span class="classifier">np.ndarray</span></dt><dd><p>Temperature in the boxes after 5 years in °C.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.geophysic_models.temperature_dynamic_model.Temp_Discret_Geoffroy.five_years_atmospheric_temperature">
+<span class="sig-name descname"><span class="pre">five_years_atmospheric_temperature</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">forcing</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#models.geophysic_models.temperature_dynamic_model.Temp_Discret_Geoffroy.five_years_atmospheric_temperature" title="Permalink to this definition"></a></dt>
+<dd><p>Function which return the atmospheric temperature variation A EXPLIQUER PLUS after five years from a state for a given emission.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>forcing</strong><span class="classifier">float</span></dt><dd><p>Forcing over the five years in w/m² per year.</p>
+</dd>
+<dt><strong>state</strong><span class="classifier">np.ndarray</span></dt><dd><p>A state of the temperature dynamic.</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt><strong>atmospheric_temperature</strong><span class="classifier">float</span></dt><dd><p>Atmospheric temperature variation in °C.</p>
 </dd>
 </dl>
 </dd>

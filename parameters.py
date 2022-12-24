@@ -6,7 +6,7 @@ FIG_SIZE=(9,6)
 FIRST_YEAR = 2020
 "Year of the first occurence of the game."
 
-FINAL_YEAR = 2025
+FINAL_YEAR = 2100
 "Year of the last occurence of the game."
 
 STEP = 5
@@ -118,3 +118,6 @@ INCREASE_COEF_CO2_RATIO[2] = 0
 
 PERCENTAGES_GREEN = [0 for i in range(N)]
 "Default list of the percentage of GDP of the players being noncarbonated."
+
+PERCENTAGE_GDP = True
+"Boolean. If True, the damage are expressed as loss in percentage of GDP."

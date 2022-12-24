@@ -34,7 +34,7 @@ extensions = [    'sphinx.ext.duration',
     'sphinx_rtd_theme',
     "nbsphinx",
     'sphinxcontrib.tikz',
-    'sphinxcontrib.bibtex'
+    'sphinxcontrib.bibtex',
 ]
 
 master_doc = 'index'

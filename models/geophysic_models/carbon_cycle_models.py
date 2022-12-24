@@ -55,6 +55,7 @@ class Linear_Carbon_Model :
     "Transition vector from the emission to the boxes"
     bc : np.ndarray = np.ones(1) 
     "Transition vector from the boxes to the atmospheric layer"
+    bdc = bc @ dc
     initial_state : np.ndarray = np.ones(1) 
     "Initial content of the boxes"
 
@@ -134,8 +135,7 @@ class Linear_Carbon_Model :
             Carbon in the atmosphere in GtC.
         """
 
-        state = self.five_years_cycle(emission, state)
-        return self.atmospheric_carbon(state)
+        return self.bc @ self.Ac @ state + self.bdc * emission
 
     def n_years_atmospheric_carbon(self,n :int, emission : float, state : np.ndarray) -> float:
         r"""Function which return the Carbon in the atmosphere in GtC after five years for a given emission.
@@ -386,7 +386,7 @@ class Carbon_JOOS(Linear_Carbon_Model) :
 
         return self.bc @ state + C_1750  # See code S. Dietz
 
-    def five_years_atmospheric_carbon(self, emission : float, state : np.ndarray) -> float:
+    def five_years_atmospheric_carbon_old(self, emission : float, state : np.ndarray) -> float:
         r"""Function that calculate the CO2 concentration in the atmosphere after 5 years from a initial state.
 
         Parameters
@@ -399,7 +399,21 @@ class Carbon_JOOS(Linear_Carbon_Model) :
         """
 
         state = self.five_years_cycle(emission, state)
-        return self.atmospheric_carbon(state)
+        return self.atmospheric_carbon(state) 
+
+    def five_years_atmospheric_carbon(self, emission : float, state : np.ndarray) -> float:
+        r"""Function that calculate the CO2 concentration in the atmosphere after 5 years from a initial state.
+
+        Parameters
+        ----------
+            emission (float): Emissions over the five years in GtCO2/year
+
+        Returns
+        -------
+            float: Carbon in the atmosphere after 5 years in GtC
+        """
+        bdc5 = self.bc @ self.dc5
+        return self.bc @ self.Ac5 @ state + bdc5 * emission + C_1750
 
     def n_years_cycle(self, n : int, emission : np.ndarray) -> None:
         """Function which return the Carbon state in GtC after :math:`n` years for a given emission per years.

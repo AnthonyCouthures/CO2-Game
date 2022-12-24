@@ -56,6 +56,8 @@ class Linear_Temperature_Dynamic :
     bt : np.ndarray = np.ones(1) 
     r"Transition vector from the boxes to the atmospheric layer"
 
+    bdt = bt @ d
+
     initial_state : np.ndarray = np.ones(1) 
     r"Initial content of the boxes"
 
@@ -142,8 +144,7 @@ class Linear_Temperature_Dynamic :
             Atmospheric temperature variation in °C.
         """
 
-        state = self.five_years_cycle(forcing, state)
-        return self.atmospheric_temperature(state)
+        return self.bt @ self.At @ state + self.bdt * forcing 
 
 
 
@@ -298,6 +299,11 @@ class Temp_Discret_Geoffroy(Linear_Temperature_Dynamic) :
         state = self.At5 @ state + self.d5 * forcing
 
         return state 
+
+    def five_years_atmospheric_temperature(self, forcing : float, state : np.ndarray) -> float:
+
+        bdt5 = self.bt @ self.d5
+        return self.bt @ self.At5 @ state + bdt5 * forcing 
 
 
         

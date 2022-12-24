@@ -12,7 +12,9 @@ Welcome to Conference of Parties Model's documentation!
    :glob:
    :maxdepth: 2
    
-   * 
+   climate_model
+   game_model
+   usage
    
 
 

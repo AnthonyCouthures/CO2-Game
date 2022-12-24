@@ -20,7 +20,8 @@ def create_players(list_of_names : list[str] = NAMES,
                     alpha : float = ALPHA,
                     list_deltas : list[float] = DELTAS,
                     list_coef_increase_co2 : list[float] = INCREASE_COEF_CO2_RATIO,
-                    list_percentage_green : list[float] = PERCENTAGES_GREEN):
+                    list_percentage_green : list[float] = PERCENTAGES_GREEN,
+                    damage_in_percentage : bool = PERCENTAGE_GDP):
     """Function which generate a list of players.
 
     Parameters
@@ -58,7 +59,8 @@ def create_players(list_of_names : list[str] = NAMES,
                           impact_factor_of_temperature = list_deltas[i],
                           increase_co2 = list_coef_increase_co2[i],
                           percentage_green=list_percentage_green[i],
-                          alpha=alpha) for i in range(N)]
+                          alpha=alpha,
+                          damage_in_percentage = damage_in_percentage) for i in range(N)]
 
 class Game:
     """Test

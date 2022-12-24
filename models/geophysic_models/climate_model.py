@@ -190,16 +190,15 @@ class Simple_Climate_Model :
 
         # Carbon Cycle
         emission = humans_emission + exogeneous_emission
-        carbon_state = self.carbon_model.five_years_cycle(emission, self.carbon_state)
-        atmospheric_carbon = self.carbon_model.atmospheric_carbon(carbon_state)
+        atmospheric_carbon = self.carbon_model.five_years_atmospheric_carbon(emission, self.carbon_state)
 
         # Radiative Forcing
         co2_radiative_forcing = self.radiative_forcing_function(atmospheric_carbon)
         radiative_forcing = co2_radiative_forcing + exogeneous_radiative_forcing
+        
 
         # Temperature dynamic
-        temperature_state = self.temperature_model.five_years_cycle(radiative_forcing, self.temperature_state)
-        atmospheric_temp = self.temperature_model.atmospheric_temperature(temperature_state)
+        atmospheric_temp = self.temperature_model.five_years_atmospheric_temperature(radiative_forcing, self.temperature_state)
 
         return atmospheric_temp
 
