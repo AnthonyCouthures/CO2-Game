@@ -50,13 +50,13 @@ class Linear_Temperature_Dynamic :
     At : np.ndarray = np.ones(1) 
     r"Transition matrix between the differents boxes"
 
-    d : np.ndarray = np.ones(1) 
+    dt : np.ndarray = np.ones(1) 
     r"Transition vector from the emission to the boxes"
 
     bt : np.ndarray = np.ones(1) 
     r"Transition vector from the boxes to the atmospheric layer"
 
-    bdt = bt @ d
+    bdt = bt @ dt
 
     initial_state : np.ndarray = np.ones(1) 
     r"Initial content of the boxes"
@@ -79,7 +79,7 @@ class Linear_Temperature_Dynamic :
 
     
     def __copy__(self):
-            return type(self)(self.At, self.d, self.bt, self.initial_state, self.name)
+            return type(self)(self.At, self.dt, self.bt, self.initial_state, self.name)
 
     def __deepcopy__(self, memo): 
         id_self = id(self)        
@@ -171,7 +171,7 @@ class Temp_DICE_2013R(Linear_Temperature_Dynamic) :
                             [0.025,   0.975]]) 
     r"Transition matrix between the differents boxes, by default :math:`\begin{bmatrix}   0.863 & 0.0086\\   0.025 & 0.975\\ \end{bmatrix}`"
     
-    d : np.ndarray = np.array([0.1005,   0]) 
+    dt : np.ndarray = np.array([0.1005,   0]) 
     r"Transition vector from the emission to the boxes, by default :math:`\begin{bmatrix}   0.1005\\   0.\\ \end{bmatrix}`"
     
     bt : np.ndarray = np.array([1,   0]) 
@@ -183,7 +183,7 @@ class Temp_DICE_2013R(Linear_Temperature_Dynamic) :
 
     def five_years_cycle(self, forcing : float, state : np.ndarray) -> np.ndarray:
 
-        state = self.At @ state + self.d * forcing 
+        state = self.At @ state + self.dt * forcing 
         return state
 
 
@@ -211,7 +211,7 @@ class Temp_DICE_2016R(Linear_Temperature_Dynamic) :
                                 [0.025,   0.975]]) 
     r"Transition matrix between the differents boxes, by default :math:`\begin{bmatrix}   0.8718 & 0.0088\\   0.025 & 0.975\\ \end{bmatrix}`"
     
-    d : np.ndarray = np.array([0.1005,   0]) 
+    dt : np.ndarray = np.array([0.1005,   0]) 
     r"Transition vector from the emission to the boxes, by default :math:`\begin{bmatrix}   0.1005\\   0.\\ \end{bmatrix}`"
     
     bt : np.ndarray = np.array([1,   0]) 
@@ -222,7 +222,7 @@ class Temp_DICE_2016R(Linear_Temperature_Dynamic) :
     
     def five_years_cycle(self, forcing : float, state : np.ndarray) -> np.ndarray:
 
-        state = self.At @ state + self.d * forcing 
+        state = self.At @ state + self.dt * forcing 
         return state      
         
 
@@ -274,11 +274,11 @@ class Temp_Discret_Geoffroy(Linear_Temperature_Dynamic) :
     gam = 0.73
     r"Parameter :math:`\gamma` of the model, by default 0.73"
     
-    At : np.ndarray = np.array([[-(lam + gam) / C, gam / C  ],
+    At_0 : np.ndarray = np.array([[-(lam + gam) / C, gam / C  ],
                                 [gam / C0        , gam / C0]]) + np.eye(2)
     r"Transition matrix between the differents boxes"
     
-    d : np.ndarray = np.array([(3.1 / 3.05) / C,   0]) 
+    dt_0 : np.ndarray = np.array([(3.1 / 3.05) / C,   0]) 
     r"Transition vector from the radiative forcing to the boxes"
     
     bt : np.ndarray = np.array([1,   0]) 
@@ -287,23 +287,23 @@ class Temp_Discret_Geoffroy(Linear_Temperature_Dynamic) :
     initial_state : np.ndarray = np.array([1.01, 0.0068]) 
     r"Initial content of the boxes, by default :math:`\begin{bmatrix}   1.01\\   0.0068\\ \end{bmatrix}`"
     
-    At5  =  exact_discretization(At - np.eye(2), np.expand_dims(d,0).T, 5)[0]
+    At  =  exact_discretization(At_0 - np.eye(2), np.expand_dims(dt_0,0).T, 5)[0]
     r"Exact transition matrix between the differents boxes for 5 years"
 
-    d5  =  exact_discretization(At - np.eye(2), np.expand_dims(d,0).T, 5)[1]
+    dt  =  exact_discretization(At_0 - np.eye(2), np.expand_dims(dt_0,0).T, 5)[1]
     r"Exact transition vector from the radiative forcing to the boxes for 5 years"
 
 
     def five_years_cycle(self, forcing : float, state : np.ndarray) -> np.ndarray:
 
-        state = self.At5 @ state + self.d5 * forcing
+        state = self.At @ state + self.dt * forcing
 
         return state 
 
     def five_years_atmospheric_temperature(self, forcing : float, state : np.ndarray) -> float:
 
-        bdt5 = self.bt @ self.d5
-        return self.bt @ self.At5 @ state + bdt5 * forcing 
+        bdt = self.bt @ self.dt
+        return self.bt @ self.At @ state + bdt * forcing 
 
 
         

@@ -127,8 +127,9 @@ class player_class:
         else:
             kwargs.pop('GDP_max', None)
         scm = kwargs.pop('scm', self.scm)
+        temp = kwargs.pop('temp', None)
         
-        return self.benefit_function(action) - self.delta * (self.damage_function(action + sum_other_actions, scm, **kwargs))**self.alpha 
+        return self.benefit_function(action) - self.delta * (self.damage_function(temp= temp, sum_action = action + sum_other_actions, scm=scm, **kwargs))**self.alpha 
 
 
 

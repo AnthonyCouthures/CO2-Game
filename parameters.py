@@ -50,7 +50,7 @@ ACTION_SETS = np.array([[0.0, 11.47],        # China
                         [0.0, 3.14],         # EU
                         [0.0, 2.71],         # India
                         [0.0, 1.76],         # Russia
-                        [0.0, 7.51]])        # other Asia  
+                        [0.0, 13.51]])        # other 
 r"""Default action set of the players.
 
 References

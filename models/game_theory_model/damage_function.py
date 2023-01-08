@@ -60,7 +60,7 @@ def damage_polynome(coefficients : np.ndarray) -> callable :
 
     """
 
-    def damage(sum_action, scm : Linear_Carbon_Model, **kwargs) -> float:
+    def damage(temp, **kwargs) -> float:
         """Damage function. 
 
         Parameters
@@ -85,8 +85,8 @@ def damage_polynome(coefficients : np.ndarray) -> callable :
             Extra arguments to damage function.
 
         """
-        
-        temp = kwargs.get('temp', None)
+        sum_action = kwargs.get('sum_action', None)
+        scm = kwargs.get('scm', None)
         gdp_max = kwargs.get('GDP_max', 100)
 
         if temp is None :

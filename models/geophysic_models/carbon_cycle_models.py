@@ -327,13 +327,13 @@ class Carbon_JOOS(Linear_Carbon_Model) :
     r"Name of the model"
     timestep : int = 1  
     r"Time-step of the model"
-    Ac : np.ndarray = np.array([[1, 0,      0,      0],
+    Ac_0 : np.ndarray = np.array([[1, 0,      0,      0],
                                 [0, 0.9975, 0,      0],
                                 [0, 0,      0.9730, 0],
                                 [0, 0,      0,      0.7927]])
     r"Transition matrix between the differents boxes, by default :math:`\begin{bmatrix} 1. & 0. & 0. & 0.\\ 0. & 0.9975 & 0. & 0.\\ 0. & 0. & 0.973 & 0.\\ 0. & 0. & 0. & 0.7927\\ \end{bmatrix}`"
 
-    dc : np.ndarray = np.array([0.2173,  0.2240, 0.2824, 0.2763]) * co2_to_C
+    dc_0 : np.ndarray = np.array([0.2173,  0.2240, 0.2824, 0.2763]) * co2_to_C
     r"Transition vector from the emission to the boxes, by default :math:`\begin{bmatrix}0.2173\\0.224\\0.2824\\0.2763\\ \end{bmatrix} \times co2\_to\_C`"
 
     bc : np.ndarray = np.ones(4)
@@ -342,16 +342,16 @@ class Carbon_JOOS(Linear_Carbon_Model) :
     initial_state : np.ndarray = np.array([139.1, 90.2, 29.2, 4.2]) 
     r"Initial content of the boxes, by default :math:`\begin{bmatrix}   139.1\\   90.2\\   29.2\\   4.2\\ \end{bmatrix}`"
 
-    Ac5  =  exact_discretization(Ac - np.eye(4), np.expand_dims(dc,0).T, 5)[0]
+    Ac  =  exact_discretization(Ac_0 - np.eye(4), np.expand_dims(dc_0,0).T, 5)[0]
     r"Exact transition matrix between the differents boxes for 5 years"
 
-    dc5  =  exact_discretization(Ac - np.eye(4), np.expand_dims(dc,0).T, 5)[1]
+    dc  =  exact_discretization(Ac_0 - np.eye(4), np.expand_dims(dc_0,0).T, 5)[1]
     r"Exact transition vector from the emission to the boxes for 5 years"
 
 
     def five_years_cycle(self, emission : float, state : np.ndarray) -> np.ndarray:
 
-        state = self.Ac5 @ state + self.dc5 * emission
+        state = self.Ac @ state + self.dc * emission
 
         return state 
 
@@ -368,7 +368,7 @@ class Carbon_JOOS(Linear_Carbon_Model) :
         """
 
         for t in range(int(5 / self.timestep)):
-            state = self.Ac @ state + self.dc * emission
+            state = self.Ac_0 @ state + self.dc_0 * emission
         return state
         
     
@@ -412,8 +412,8 @@ class Carbon_JOOS(Linear_Carbon_Model) :
         -------
             float: Carbon in the atmosphere after 5 years in GtC
         """
-        bdc5 = self.bc @ self.dc5
-        return self.bc @ self.Ac5 @ state + bdc5 * emission + C_1750
+        bdc = self.bc @ self.dc
+        return self.bc @ self.Ac @ state + bdc * emission + C_1750
 
     def n_years_cycle(self, n : int, emission : np.ndarray) -> None:
         """Function which return the Carbon state in GtC after :math:`n` years for a given emission per years.
