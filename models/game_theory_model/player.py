@@ -13,6 +13,7 @@ from scipy.optimize import *
 from ..geophysic_models import *
 from copy import deepcopy
 from parameters import *
+from .jacobian import * 
 
 class player_class:
     """Class of a player.
@@ -130,6 +131,44 @@ class player_class:
         temp = kwargs.pop('temp', None)
         
         return self.benefit_function(action) - self.delta * (self.damage_function(temp= temp, sum_action = action + sum_other_actions, scm=scm, **kwargs))**self.alpha 
+
+    def utility_sum_over_t(self, emissions, others_emissions, **kwargs):
+
+        all_emissions = emissions + others_emissions
+        atmospheric_temperatures = self.scm.evaluate_trajectory(all_emissions, **kwargs)[-1]
+        damages = self.delta  * self.damage_function(atmospheric_temperatures)
+        benefit = self.benefit_function(emissions)
+        return np.sum(benefit - damages)
+
+    def jacobian_utility_sum_over_t(self, others_emissions, **kwargs):
+        t_periode = len(others_emissions)
+        CC = self.scm.carbon_model
+        TD = self.scm.temperature_model
+        def jacobian(x):
+            carbon_AT, forcing, temperature_AT = self.scm.evaluate_trajectory(x + others_emissions, **kwargs)
+            jac_carbon_AT = jacobian_linear_model(CC.Ac, CC.bc, CC.dc, t_periode)
+            jac_forcing = jacobian_forcing(carbon_AT)
+            jac_temperature_AT = jacobian_linear_model(TD.At, TD.bt, TD.dt, t_periode)
+            jac_damage = jacobian_damage_function(temperature_AT, self.damage_function)
+
+            jac_benefit = np.array([derivative(self.benefit_function,x[t], order=5, dx=1e-6) for t in range(t_periode)])
+            return -(jac_benefit - self.delta * jac_damage @ jac_temperature_AT @ jac_forcing @ jac_carbon_AT)
+        return jacobian
+
+    def best_response_over_t(self, others_emissions, **kwargs):
+        def response(x):
+            return -self.utility_sum_over_t(x, others_emissions, **kwargs)
+        jac= self.jacobian_utility_sum_over_t(others_emissions, **kwargs)
+        repeated_action_set = np.tile(self.action_set, (len(others_emissions),1))
+        bounds = Bounds(lb = repeated_action_set[:,0], ub=repeated_action_set[:,1], keep_feasible=True) 
+        x0 = kwargs.get('x0', repeated_action_set[:,1])
+
+        res = minimize(response, x0 = x0, bounds=bounds, jac=jac, tol = 1e-6, options={'maxiter': 1000, 'disp': 0})
+        if res.success:
+            return res.x
+        else:
+            print('!')
+            return res.x
 
 
 

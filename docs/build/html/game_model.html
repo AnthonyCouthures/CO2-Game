@@ -127,6 +127,8 @@
 <li class="toctree-l4"><a class="reference internal" href="#models.game.Game.get_GDP_max"><code class="docutils literal notranslate"><span class="pre">Game.get_GDP_max()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#models.game.Game.repeated_one_shot_game"><code class="docutils literal notranslate"><span class="pre">Game.repeated_one_shot_game()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#models.game.Game.best_response_dynamic_one_shot"><code class="docutils literal notranslate"><span class="pre">Game.best_response_dynamic_one_shot()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.get_players_planning_utilities"><code class="docutils literal notranslate"><span class="pre">Game.get_players_planning_utilities()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#models.game.Game.best_response_dynamic_planning"><code class="docutils literal notranslate"><span class="pre">Game.best_response_dynamic_planning()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -208,7 +210,7 @@
 
 <dl class="py data">
 <dt class="sig sig-object py" id="parameters.T">
-<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">T</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">37</span></em><a class="headerlink" href="#parameters.T" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">T</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">17</span></em><a class="headerlink" href="#parameters.T" title="Permalink to this definition"></a></dt>
 <dd><p>Number of games played, given by int((FINAL_YEAR - FIRST_YEAR) / STEP) +1</p>
 </dd></dl>
 
@@ -244,7 +246,7 @@
 
 <dl class="py data">
 <dt class="sig sig-object py" id="parameters.ACTION_SETS">
-<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">ACTION_SETS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">array([[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span> <span class="pre">11.47],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">5.01],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">3.14],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">2.71],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">1.76],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">7.51]])</span></em><a class="headerlink" href="#parameters.ACTION_SETS" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">ACTION_SETS</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">array([[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span> <span class="pre">11.47],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">5.01],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">3.14],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">2.71],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span>&#160; <span class="pre">1.76],</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">[</span> <span class="pre">0.</span>&#160; <span class="pre">,</span> <span class="pre">13.51]])</span></em><a class="headerlink" href="#parameters.ACTION_SETS" title="Permalink to this definition"></a></dt>
 <dd><p>Default action set of the players.</p>
 <p class="rubric">References</p>
 <dl class="citation">
@@ -311,7 +313,7 @@
 
 <dl class="py function">
 <dt class="sig sig-object py" id="parameters.DAMAGE">
-<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">DAMAGE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sum_action</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="climate_model.html#models.geophysic_models.carbon_cycle_models.Linear_Carbon_Model" title="models.geophysic_models.carbon_cycle_models.Linear_Carbon_Model"><span class="pre">Linear_Carbon_Model</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#parameters.DAMAGE" title="Permalink to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">parameters.</span></span><span class="sig-name descname"><span class="pre">DAMAGE</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">temp</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#parameters.DAMAGE" title="Permalink to this definition"></a></dt>
 <dd><p>Default damage function, the damage function is expressed in % of GDP loss.</p>
 </dd></dl>
 
@@ -569,11 +571,20 @@
 </table>
 <table class="docutils align-default">
 <colgroup>
-<col style="width: 58%" />
-<col style="width: 42%" />
+<col style="width: 76%" />
+<col style="width: 24%" />
 </colgroup>
 <tbody>
+<tr class="row-odd"><td><p><strong>best_response_over_t</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>jacobian_utility_sum_over_t</strong></p></td>
+<td></td>
+</tr>
 <tr class="row-odd"><td><p><strong>update_scm</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>utility_sum_over_t</strong></p></td>
 <td></td>
 </tr>
 </tbody>
@@ -862,11 +873,17 @@ where response is equal to minus the utility of the player.</p>
 <tr class="row-odd"><td><p><a class="reference internal" href="#models.game.Game.best_response_dynamic_one_shot" title="models.game.Game.best_response_dynamic_one_shot"><code class="xref py py-obj docutils literal notranslate"><span class="pre">best_response_dynamic_one_shot</span></code></a>([...])</p></td>
 <td><p>Best Response Dynamic function which allow us to find Nash equilibria.</p></td>
 </tr>
-<tr class="row-even"><td><p><a class="reference internal" href="#models.game.Game.get_GDP_max" title="models.game.Game.get_GDP_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_GDP_max</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.game.Game.best_response_dynamic_planning" title="models.game.Game.best_response_dynamic_planning"><code class="xref py py-obj docutils literal notranslate"><span class="pre">best_response_dynamic_planning</span></code></a>(t_max[, ...])</p></td>
+<td><p>Best Response Dynamic function which allow us to find Nash equilibria for the planning.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#models.game.Game.get_GDP_max" title="models.game.Game.get_GDP_max"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_GDP_max</span></code></a>()</p></td>
 <td><p>Function which extract the maximum GDP of the players of the game at current state.</p></td>
 </tr>
-<tr class="row-odd"><td><p><a class="reference internal" href="#models.game.Game.get_action_space" title="models.game.Game.get_action_space"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_action_space</span></code></a>()</p></td>
+<tr class="row-even"><td><p><a class="reference internal" href="#models.game.Game.get_action_space" title="models.game.Game.get_action_space"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_action_space</span></code></a>()</p></td>
 <td><p>Function which extract the action sets of the players of the game at current state.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#models.game.Game.get_players_planning_utilities" title="models.game.Game.get_players_planning_utilities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_players_planning_utilities</span></code></a>()</p></td>
+<td><p>Function which extract utility functions of the players.</p></td>
 </tr>
 <tr class="row-even"><td><p><a class="reference internal" href="#models.game.Game.get_players_utilities" title="models.game.Game.get_players_utilities"><code class="xref py py-obj docutils literal notranslate"><span class="pre">get_players_utilities</span></code></a>()</p></td>
 <td><p>Function which extract utility functions of the players.</p></td>
@@ -897,10 +914,34 @@ where response is equal to minus the utility of the player.</p>
 <tr class="row-even"><td><p><strong>fct_sum_utilities_one_shot</strong></p></td>
 <td></td>
 </tr>
+<tr class="row-odd"><td><p><strong>gradient_over_potential</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>jacobian_benefice</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>jacobian_damage_planning_all_players</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>jacobian_potential_planning</strong></p></td>
+<td></td>
+</tr>
 <tr class="row-odd"><td><p><strong>one_shot_game</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-even"><td><p><strong>one_shot_game_with_strategies_profile</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>planning_BRD</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>planning_game</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-odd"><td><p><strong>planning_gradient_descent</strong></p></td>
+<td></td>
+</tr>
+<tr class="row-even"><td><p><strong>potential_planning</strong></p></td>
 <td></td>
 </tr>
 <tr class="row-odd"><td><p><strong>repeated_one_shot_game_BAU</strong></p></td>
@@ -1062,6 +1103,42 @@ u_fct_p[t][n] is the utility function of player n at time t.</p>
 <dt class="sig sig-object py" id="models.game.Game.best_response_dynamic_one_shot">
 <span class="sig-name descname"><span class="pre">best_response_dynamic_one_shot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">step_criterion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utility_criterion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#models.game.Game.best_response_dynamic_one_shot" title="Permalink to this definition"></a></dt>
 <dd><p>Best Response Dynamic function which allow us to find Nash equilibria.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>step_criterion</strong><span class="classifier">int, optional</span></dt><dd><p>Maximum number of iteration of the Best Response Dynamic before stoping, by default 100</p>
+</dd>
+<dt><strong>utility_criterion</strong><span class="classifier">float, optional</span></dt><dd><p>Minimal difference between two step we need to obtain before stoping, by default 0.0001</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><dl class="simple">
+<dt>np.ndarray</dt><dd><p>End point of the BRD.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game.Game.get_players_planning_utilities">
+<span class="sig-name descname"><span class="pre">get_players_planning_utilities</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#models.game.Game.get_players_planning_utilities" title="Permalink to this definition"></a></dt>
+<dd><p>Function which extract utility functions of the players.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><dl class="simple">
+<dt>list(callable)</dt><dd><p>List of the utility functions of the players of the game at current state.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="models.game.Game.best_response_dynamic_planning">
+<span class="sig-name descname"><span class="pre">best_response_dynamic_planning</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">t_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step_criterion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">100</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">utility_criterion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.0001</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#models.game.Game.best_response_dynamic_planning" title="Permalink to this definition"></a></dt>
+<dd><p>Best Response Dynamic function which allow us to find Nash equilibria for the planning.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
 <dd class="field-odd"><dl class="simple">

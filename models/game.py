@@ -6,6 +6,7 @@ import numpy as np
 from scipy.optimize import *
 from .geophysic_models import *
 from .game_theory_model.player import player_class
+from .game_theory_model.jacobian import * 
 from copy import deepcopy
 from parameters import *
 
@@ -102,6 +103,8 @@ class Game:
 
         self.list_players : list[player_class] = deepcopy(list_players)
         "List of player in the game with their characteristics."
+
+        self.damage_function = self.list_players[0].damage_function
 
     def reset(self) :
         """Function which reset the game. i.e. It reset the SCM of the game, the SCM of the players and the player themselve. 
@@ -263,7 +266,6 @@ class Game:
         return a_p, sum_a_p, u_val_p, u_fct_p, sum_u_val_p, a_space_p, temp_p
 
 
-
     def best_response_dynamic_one_shot(self, step_criterion : int = 100, utility_criterion : float = 0.0001):
         """Best Response Dynamic function which allow us to find Nash equilibria.
 
@@ -407,3 +409,176 @@ class Game:
 
         return utilities
 
+    def get_players_planning_utilities(self):
+        """Function which extract utility functions of the players. 
+
+        Returns
+        -------
+        list(callable)
+            List of the utility functions of the players of the game at current state.
+        """
+        fcts = []
+        for player in self.list_players:
+            fcts.append(deepcopy(player.utility_sum_over_t))
+        return fcts
+
+    def planning_game(self, rule : callable, t_max = None, **kwargs):
+
+        # Creation of the futures return.
+        if t_max is None:
+            t_max = self.T
+        a_p = np.zeros((self.N, t_max)) 
+        sum_a_p = np.zeros(t_max)
+        u_val_p = np.zeros((self.N, t_max))
+        u_fct = self.get_players_utilities()
+
+        # Reset the game: SCM, players' utility and action sets.
+        self.reset()
+
+        ## Initialization of the planning game.
+
+        # Players get the SCM values from the SCM of the planning game. 
+        self.update_players_scm()
+
+        ## Realization of the game.
+
+        # Players choose their actions following the given rule.
+        a_p = rule(t_max, **kwargs)
+
+        # Actions are summed 
+        sum_a_p = np.sum(a_p, axis=0)
+
+        ## Climate modelization 
+
+        # Players' emissions are injected in the SCM.
+        carbon_AT, forcing, temperature_AT =  self.scm_game.evaluate_trajectory(sum_a_p, **kwargs)
+
+        # Calculus of the utilities values for all games.
+        for indice in range(self.N):
+            u_val_p[indice] = u_fct[indice](a_p[indice], sum_a_p - a_p[indice], **kwargs)
+
+        # Sum of the utilities values for all games.
+        sum_u_val_p = np.sum(u_val_p, axis=0)
+
+        return a_p, sum_a_p, u_val_p, sum_u_val_p, temperature_AT
+
+
+    def potential_planning(self, t_max, a : np.ndarray, **kwargs):
+
+        a = np.reshape(a, (self.N,t_max), 'F' )
+
+        all_emissions = np.sum(a, axis=0)
+
+        temperature_AT = self.scm_game.evaluate_trajectory(all_emissions, tmax = t_max, **kwargs)
+
+        benefit = sum([1/player.delta *  sum([player.benefit_function(a[idx,t]) for t in range(t_max)]) for idx,player in enumerate(self.list_players)])
+        damage = sum(self.damage_function(temperature_AT))
+        value = benefit - damage
+        return value
+
+
+    def jacobian_damage_planning_all_players(self, a : np.ndarray, **kwargs):
+        t_max = a.shape[1]
+
+        sum_a = np.sum(a, axis=0)
+
+        CC = self.scm_game.carbon_model
+        TD = self.scm_game.temperature_model
+
+        carbon_AT, forcing, temperature_AT = self.scm_game.evaluate_trajectory(sum_a, tmax=t_max, **kwargs)
+
+        jac_carbon_AT = jacobian_linear_model(CC.Ac, CC.bc, CC.dc, t_max)
+        jac_forcing = jacobian_forcing(carbon_AT)
+        jac_temperature_AT = jacobian_linear_model(TD.At, TD.bt, TD.dt, t_max)
+        jac_damage = jacobian_damage_function(temperature_AT, self.damage_function)
+        jac_sum = jacobian_sum(t_max, self.N)
+        
+        jacobian =  jac_damage @ jac_temperature_AT @ jac_forcing @ jac_carbon_AT @ jac_sum
+
+        return jacobian
+
+
+    def jacobian_benefice(self, a : np.ndarray):
+        t_max = a.shape[1]
+        diag = [1/player.delta *  derivative(player.benefit_function ,a[idx,t]) for t in range(t_max) for idx, player in enumerate(self.list_players)]
+        return np.array(diag).T
+
+    def jacobian_potential_planning(self, t_max,  a : np.ndarray, **kwargs):
+        a = np.reshape(a,(self.N, t_max),'F') # the reshape function is weird it's important
+        return self.jacobian_benefice(a) - self.jacobian_damage_planning_all_players(a, **kwargs)
+
+    def gradient_over_potential(self, t_max, **kwargs):
+        def potential_planning_wrapped(a):
+            return - self.potential_planning(t_max, a, **kwargs)
+        def jacobian_potential_planning_wrapped(a):
+            return - self.jacobian_potential_planning(t_max, a, **kwargs)
+
+        action_space = self.get_action_space()
+        bounds = np.tile(action_space, (t_max,1))
+
+        x0 = kwargs.get('x0', bounds[:,1])
+        if x0.shape != bounds[:,1].shape:
+            x0= x0.flatten()
+            print('pass')
+        bounds = Bounds(lb=bounds[:,0], ub=bounds[:,1], keep_feasible=True)
+
+        res = minimize(potential_planning_wrapped ,x0=x0 , bounds=bounds, jac = jacobian_potential_planning_wrapped, tol = 1e-6, options={'maxiter': 1000, 'disp': 0})
+        return np.reshape(res.x  ,(self.N, t_max),'F')
+
+    def planning_gradient_descent(self, t_max = None, **kwargs):
+        if t_max is None:
+            t_max = self.T
+        self.ne_a_planning_gd, self.ne_sum_a_planning_gd, self.ne_u_val_planning_gd, self.ne_sum_u_val_planning_gd, self.ne_temp_planning_gd = self.planning_game(self.gradient_over_potential, t_max=t_max, **kwargs)
+
+
+    def best_response_dynamic_planning(self, t_max, step_criterion : int = 100, utility_criterion : float = 0.0001, **kwargs):
+        """Best Response Dynamic function which allow us to find Nash equilibria for the planning.
+
+        Parameters
+        ----------
+        step_criterion : int, optional
+            Maximum number of iteration of the Best Response Dynamic before stoping, by default 100
+        utility_criterion : float, optional
+            Minimal difference between two step we need to obtain before stoping, by default 0.0001
+
+        Returns
+        -------
+        np.ndarray
+            End point of the BRD.
+        """
+
+        #Const
+        loss = 1000
+        k = 0
+        
+        ## Initialization of the BRDhb
+        action_space = self.get_action_space()
+        bounds = np.repeat(action_space[:,1].reshape(self.N, 1), t_max, axis = 1)
+        # Initial action put at 0.
+        inital_action = kwargs.pop('x0', bounds)
+        # Creation of the list of Best response actions.
+        list_of_all_action = [inital_action]
+
+        while (loss > utility_criterion) and (k < step_criterion):
+
+            list_action = deepcopy(list_of_all_action[-1])
+            for indice in range(self.N):
+                # Best response fonction of a players is a function of the sum of other actions.
+                # Sum of others players actions
+                sum_other_actions = np.sum(list_action, axis=0) - list_action[indice]
+
+                # Calculate the Best Responce of the player indice for the given sum of other players' emissions.
+                list_action[indice] = self.list_players[indice].best_response_over_t(sum_other_actions, tmax= t_max, x0 = list_action[indice], **kwargs)
+                
+            #Increase in the iteration of the BRD
+            k +=1
+            # Calcul of the improvement attained for the this iteration of the BRs
+            loss = np.sum([(list_action[indice] - list_of_all_action[-1][indice])**2 for indice in range(self.N)])
+            # Save the actual point of the the BRs
+            list_of_all_action.append(list_action)
+        return list_of_all_action[-1]
+
+    def planning_BRD(self, t_max = None, **kwargs):
+        if t_max is None:
+            t_max = self.T
+        self.ne_a_planning_brd, self.ne_sum_a_planning_brd, self.ne_u_val_planning_brd, self.ne_sum_u_val_planning_brd, self.ne_temp_planning_brd = self.planning_game(self.best_response_dynamic_planning, t_max=t_max, **kwargs)

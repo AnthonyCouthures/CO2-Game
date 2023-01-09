@@ -231,7 +231,7 @@ class Simple_Climate_Model :
 
         return atmospheric_carbon
 
-    def evalutate_linear_model(x, A, b, d, initial_state):
+    def evalutate_linear_model(self, x, A, b, d, initial_state):
         vecteur = []
         state = initial_state
         for x_ in x:
@@ -240,18 +240,13 @@ class Simple_Climate_Model :
         return np.array(vecteur)
 
 
-    def evaluate_trajectory(self, emissions : np.ndarray, array_exogeneous_emission : np.ndarray = None,
-                            array_exogeneous_radiative_forcing : np.ndarray = None) -> tuple :
+    def evaluate_trajectory(self, emissions : np.ndarray, **kwargs) -> tuple :
         """Function which simulate the geophysic variation for a given emission path.
 
         Parameters
         ----------
         emissions : np.ndarray
             Emission path, a vector of lenght t
-        array_exogeneous_emission : np.ndarray, optional
-            Exogeneous emissions, by default None
-        array_exogeneous_radiative_forcing : np.ndarray, optional
-            Exogeneous frocing, by default None
 
         Returns
         -------
@@ -259,16 +254,22 @@ class Simple_Climate_Model :
             A tuple containing the trajectories (atmospheric_carbon, forcing, atmospheric_temp).
         """
 
-        if array_exogeneous_emission == None :
-            array_exogeneous_emission = self.non_human_carbon_emission
-        if array_exogeneous_radiative_forcing == None :
-            array_exogeneous_radiative_forcing = self.non_co2_radiative_forcing
+        carbon_state = kwargs.get('carbon_state', self.carbon_state)
+        temperature_state = kwargs.get('temperature_state', self.temperature_state)
 
-        atmospheric_carbon = self.evalutate_linear_model(emissions, self.carbon_model.Ac,
-                                                         self.carbon_model.bc, self.carbon_model.dc, self.carbon_state)
-        forcing = self.radiative_forcing_function(atmospheric_carbon)
+        exogeneous_emissions = kwargs.get('exogeneous_emissions', self.non_human_carbon_emission)
+        exogeneous_radiative_forcing = kwargs.get('exogeneous_radiative_forcing', self.non_co2_radiative_forcing)
+        t0 = kwargs.get('t0', 0)
+        tmax = kwargs.get('tmax', len(emissions)) + t0
+
+        all_emissions = emissions + exogeneous_emissions[t0:tmax]
+        atmospheric_carbon = self.evalutate_linear_model(all_emissions, self.carbon_model.Ac,
+                                                         self.carbon_model.bc, self.carbon_model.dc, carbon_state)
+        if self.carbon_model.name == 'Joos-et-al':
+            atmospheric_carbon += C_1750
+        forcing = self.radiative_forcing_function(atmospheric_carbon) + exogeneous_radiative_forcing[t0: tmax]
         atmospheric_temp = self.evalutate_linear_model(forcing, self.temperature_model.At,
-                                                         self.temperature_model.bt, self.temperature_model.dt, self.temperature_state)
+                                                         self.temperature_model.bt, self.temperature_model.dt, temperature_state)
 
         return atmospheric_carbon, forcing, atmospheric_temp
 

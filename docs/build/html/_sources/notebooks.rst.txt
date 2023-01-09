@@ -6,4 +6,4 @@ Notebooks
     :maxdepth: 2
     :caption: Contents:
 
-    example
+    example_SCM
