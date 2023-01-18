@@ -221,8 +221,7 @@ class Simple_Climate_Model :
 
         if exogeneous_emission == None :
             exogeneous_emission = self.non_human_carbon_emission[self.num_cycle]
-        if exogeneous_radiative_forcing == None :
-            exogeneous_radiative_forcing = self.non_co2_radiative_forcing[self.num_cycle]
+
 
         # Carbon Cycle
         emission = humans_emission + exogeneous_emission

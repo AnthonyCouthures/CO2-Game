@@ -45,7 +45,7 @@ N = 6
 # Espaces d'action des joueurs en GtCO2
 
 
-ACTION_SETS = np.array([[0.0, 11.47],        # China  
+ACTION_SETS =  np.array([[0.0, 11.47],        # China  
                         [0.0, 5.01],         # USA
                         [0.0, 3.14],         # EU
                         [0.0, 2.71],         # India
@@ -92,6 +92,7 @@ References
 """
 
 NAMES = ['player {}'.format(i) for i in range(N)]
+NAMES = ['China', 'USA', 'EU', 'India', 'Russia', 'Others']
 "Names of the players"
 
 BENEFITS = [benefit_affine for i in range(N)]
@@ -121,3 +122,5 @@ PERCENTAGES_GREEN = [0 for i in range(N)]
 
 PERCENTAGE_GDP = True
 "Boolean. If True, the damage are expressed as loss in percentage of GDP."
+
+DISCOUNT = 1

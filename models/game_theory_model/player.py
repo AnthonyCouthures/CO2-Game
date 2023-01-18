@@ -29,7 +29,8 @@ class player_class:
                 alpha : float = 1,
                 increase_co2 = INCREASE_CO2_RATIO,
                 percentage_green = 0,
-                damage_in_percentage = True) -> None:
+                damage_in_percentage = True,
+                discount = 1) -> None:
                 
 
         self.name : str = name
@@ -74,6 +75,8 @@ class player_class:
 
         self.damage_in_percentage : bool = damage_in_percentage
         "Specify if the damage is as percentage og GDP."
+
+        self.discount = discount
 
     def reset_player(self):
         """Function which reset the player to the inital state.
@@ -133,14 +136,21 @@ class player_class:
         return self.benefit_function(action) - self.delta * (self.damage_function(temp= temp, sum_action = action + sum_other_actions, scm=scm, **kwargs))**self.alpha 
 
     def utility_sum_over_t(self, emissions, others_emissions, **kwargs):
-
+        if self.discount !=1:
+            discount = self.discount**np.arange(len(emissions))
+        else:
+            discount = 1
         all_emissions = emissions + others_emissions
         atmospheric_temperatures = self.scm.evaluate_trajectory(all_emissions, **kwargs)[-1]
         damages = self.delta  * self.damage_function(atmospheric_temperatures)
         benefit = self.benefit_function(emissions)
-        return np.sum(benefit - damages)
+        return np.sum(discount * (benefit - damages))
 
     def jacobian_utility_sum_over_t(self, others_emissions, **kwargs):
+        if self.discount !=1:
+            discount = self.discount**np.arange(len(others_emissions))
+        else:
+            discount = 1
         t_periode = len(others_emissions)
         CC = self.scm.carbon_model
         TD = self.scm.temperature_model
@@ -152,7 +162,7 @@ class player_class:
             jac_damage = jacobian_damage_function(temperature_AT, self.damage_function)
 
             jac_benefit = np.array([derivative(self.benefit_function,x[t], order=5, dx=1e-6) for t in range(t_periode)])
-            return -(jac_benefit - self.delta * jac_damage @ jac_temperature_AT @ jac_forcing @ jac_carbon_AT)
+            return -discount * (jac_benefit - self.delta * jac_damage @ jac_temperature_AT @ jac_forcing @ jac_carbon_AT)
         return jacobian
 
     def best_response_over_t(self, others_emissions, **kwargs):
@@ -161,14 +171,13 @@ class player_class:
         jac= self.jacobian_utility_sum_over_t(others_emissions, **kwargs)
         repeated_action_set = np.tile(self.action_set, (len(others_emissions),1))
         bounds = Bounds(lb = repeated_action_set[:,0], ub=repeated_action_set[:,1], keep_feasible=True) 
-        x0 = kwargs.get('x0', repeated_action_set[:,1])
+        x0 = kwargs.get('x0', repeated_action_set[:,0])
 
-        res = minimize(response, x0 = x0, bounds=bounds, jac=jac, tol = 1e-6, options={'maxiter': 1000, 'disp': 0})
-        if res.success:
-            return res.x
-        else:
-            print('!')
-            return res.x
+        res = minimize(response, x0 = x0, bounds=bounds,  tol = 1e-5, options={'maxiter': 10000, 'disp': 0})
+        if not res.success:
+            print(res.success)
+        return res.x
+
 
 
 
@@ -283,7 +292,7 @@ class player_class:
         ratio = previous_emission / action_set[1]
         # The action set of the player update 
         action_set[1] =  action_set[1] * (1 + ratio * self.increase_co2)
-        GDP_max = GDP_max * (1 + ratio*0.02)
+        GDP_max = GDP_max * (1 + ratio*0.002)
         benefit_function = self.benefit_shape(GDP_max, action_set[1], percentage_green)
         return action_set, GDP_max, benefit_function
 

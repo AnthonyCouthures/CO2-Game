@@ -22,7 +22,8 @@ def create_players(list_of_names : list[str] = NAMES,
                     list_deltas : list[float] = DELTAS,
                     list_coef_increase_co2 : list[float] = INCREASE_COEF_CO2_RATIO,
                     list_percentage_green : list[float] = PERCENTAGES_GREEN,
-                    damage_in_percentage : bool = PERCENTAGE_GDP):
+                    damage_in_percentage : bool = PERCENTAGE_GDP,
+                    discount = DISCOUNT):
     """Function which generate a list of players.
 
     Parameters
@@ -61,7 +62,8 @@ def create_players(list_of_names : list[str] = NAMES,
                           increase_co2 = list_coef_increase_co2[i],
                           percentage_green=list_percentage_green[i],
                           alpha=alpha,
-                          damage_in_percentage = damage_in_percentage) for i in range(N)]
+                          damage_in_percentage = damage_in_percentage, 
+                          discount= discount) for i in range(N)]
 
 class Game:
     """Test
@@ -74,11 +76,15 @@ class Game:
                 exogeneous_radiative_forcing : np.ndarray = F_EX,
                 horizon : int = FINAL_YEAR,
                 initial_time : int = FIRST_YEAR,
-                time_step : int = 5 ) -> None:
+                time_step : int = 5,
+                temperature_target = 2,
+                update_allowed = False) -> None:
 
         self.N : int = len(list_players) 
         "Number of player in the game"      
-        
+        self.horizon = horizon
+
+        self.temperature_target = temperature_target
         self.T : int = int((horizon - initial_time)/time_step)+1
         "Number of time the game is repeated"
         # Business As Usual
@@ -105,6 +111,10 @@ class Game:
         "List of player in the game with their characteristics."
 
         self.damage_function = self.list_players[0].damage_function
+
+        self.update_allowed = update_allowed
+
+        self.deltas = np.array([player.delta for player in list_players])
 
     def reset(self) :
         """Function which reset the game. i.e. It reset the SCM of the game, the SCM of the players and the player themselve. 
@@ -174,7 +184,7 @@ class Game:
             GDP_max[idx] = deepcopy(player.GDP_max)
         return GDP_max
 
-    def repeated_one_shot_game(self, rule : callable):
+    def repeated_one_shot_game(self, rule : callable, **kwargs):
         """Function which simulate repetition of the one shot game for a given solution concept. For example,
         Nash equilibria, Social optimum,...
 
@@ -207,7 +217,7 @@ class Game:
 
         a_p = np.zeros((self.N, self.T)) 
         sum_a_p = np.zeros(self.T)
-        u_val_p = np.zeros((self.N, self.T))
+        u_p = np.zeros((self.N, self.T))
         u_fct_p = [None] * self.T
         a_space_p = np.zeros((self.N,self.T,2))
         gdp_max_p = np.zeros((self.N, self.T))
@@ -241,11 +251,11 @@ class Game:
             # We save the GDP_max of the players for the current game.
             gdp_max_p[:,time] = self.get_GDP_max()
 
+            if self.update_allowed :
+                ## Updating of the players.
 
-            ## Updating of the players.
-
-            # The players utility and action set get update with respect to the previous action
-            self.update_player(a_p[:,time])
+                # The players utility and action set get update with respect to the previous action
+                self.update_player(a_p[:,time])
 
             ## Climate modelization take place
 
@@ -256,14 +266,14 @@ class Game:
             temp_p[time] = self.scm_game.atmospheric_temp
 
         # Calculus of the utilities values for all games.
-        for time in range(self.T):
-            for indice in range(N):
-                u_val_p[indice,time] = u_fct_p[time][indice](a_p[indice,time], sum_a_p[time] - a_p[indice,time], GDP_max = gdp_max_p[indice,time], temp=temp_p[time])
+        for idx, player in enumerate(self.list_players):
+            
+            u_p[idx] = player.benefit_function(a_p[idx]) - player.damage_function(temp_p, **kwargs)
 
         # Sum of the utilities values for all games.
-        sum_u_val_p = np.sum(u_val_p, axis=0)
+        sum_u_val_p = np.sum(u_p, axis=0)
 
-        return a_p, sum_a_p, u_val_p, u_fct_p, sum_u_val_p, a_space_p, temp_p
+        return a_p, sum_a_p, u_p, u_fct_p, sum_u_val_p, a_space_p, temp_p
 
 
     def best_response_dynamic_one_shot(self, step_criterion : int = 100, utility_criterion : float = 0.0001):
@@ -429,8 +439,7 @@ class Game:
             t_max = self.T
         a_p = np.zeros((self.N, t_max)) 
         sum_a_p = np.zeros(t_max)
-        u_val_p = np.zeros((self.N, t_max))
-        u_fct = self.get_players_utilities()
+        u_p = np.zeros((self.N, t_max))
 
         # Reset the game: SCM, players' utility and action sets.
         self.reset()
@@ -444,7 +453,6 @@ class Game:
 
         # Players choose their actions following the given rule.
         a_p = rule(t_max, **kwargs)
-
         # Actions are summed 
         sum_a_p = np.sum(a_p, axis=0)
 
@@ -454,13 +462,13 @@ class Game:
         carbon_AT, forcing, temperature_AT =  self.scm_game.evaluate_trajectory(sum_a_p, **kwargs)
 
         # Calculus of the utilities values for all games.
-        for indice in range(self.N):
-            u_val_p[indice] = u_fct[indice](a_p[indice], sum_a_p - a_p[indice], **kwargs)
+        for idx, player in enumerate(self.list_players):
 
+            u_p[idx] = player.benefit_function(a_p[idx]) - player.damage_function(temperature_AT, **kwargs)
         # Sum of the utilities values for all games.
-        sum_u_val_p = np.sum(u_val_p, axis=0)
+        sum_u_p = np.sum(u_p, axis=0)
 
-        return a_p, sum_a_p, u_val_p, sum_u_val_p, temperature_AT
+        return a_p, sum_a_p, u_p, sum_u_p, temperature_AT
 
 
     def potential_planning(self, t_max, a : np.ndarray, **kwargs):
@@ -473,7 +481,7 @@ class Game:
 
         benefit = sum([1/player.delta *  sum([player.benefit_function(a[idx,t]) for t in range(t_max)]) for idx,player in enumerate(self.list_players)])
         damage = sum(self.damage_function(temperature_AT))
-        value = benefit - damage
+        value = benefit - damage 
         return value
 
 
@@ -521,14 +529,14 @@ class Game:
             x0= x0.flatten()
             print('pass')
         bounds = Bounds(lb=bounds[:,0], ub=bounds[:,1], keep_feasible=True)
-
+        print(potential_planning_wrapped(x0).shape)
         res = minimize(potential_planning_wrapped ,x0=x0 , bounds=bounds, jac = jacobian_potential_planning_wrapped, tol = 1e-6, options={'maxiter': 1000, 'disp': 0})
         return np.reshape(res.x  ,(self.N, t_max),'F')
 
     def planning_gradient_descent(self, t_max = None, **kwargs):
         if t_max is None:
             t_max = self.T
-        self.ne_a_planning_gd, self.ne_sum_a_planning_gd, self.ne_u_val_planning_gd, self.ne_sum_u_val_planning_gd, self.ne_temp_planning_gd = self.planning_game(self.gradient_over_potential, t_max=t_max, **kwargs)
+        self.ne_a_planning_gd, self.ne_sum_a_planning_gd, self.ne_u_planning_gd, self.ne_sum_u_planning_gd, self.ne_temp_planning_gd = self.planning_game(self.gradient_over_potential, t_max=t_max, **kwargs)
 
 
     def best_response_dynamic_planning(self, t_max, step_criterion : int = 100, utility_criterion : float = 0.0001, **kwargs):
@@ -581,4 +589,72 @@ class Game:
     def planning_BRD(self, t_max = None, **kwargs):
         if t_max is None:
             t_max = self.T
-        self.ne_a_planning_brd, self.ne_sum_a_planning_brd, self.ne_u_val_planning_brd, self.ne_sum_u_val_planning_brd, self.ne_temp_planning_brd = self.planning_game(self.best_response_dynamic_planning, t_max=t_max, **kwargs)
+        self.ne_a_planning_brd, self.ne_sum_a_planning_brd, self.ne_u_planning_brd, self.ne_sum_u_planning_brd, self.ne_temp_planning_brd = self.planning_game(self.best_response_dynamic_planning, t_max=t_max, **kwargs)
+
+    def sum_utilities_planning(self, t_max, actions : np.ndarray, **kwargs) -> float:
+        actions = np.reshape(actions,(self.N, t_max),'F')
+        sum_actions = np.sum(actions, axis =0)
+        temperature_AT = self.scm_game.evaluate_trajectory(sum_actions, **kwargs)[-1]
+        sum_utilities = 0
+        for idx, player in enumerate(self.list_players) :
+            
+            sum_utilities += np.sum(player.utility_sum_over_t(actions[idx], sum_actions - actions[idx], temp = temperature_AT ))
+
+
+        return sum_utilities
+
+    def jacobian_sum_benefice(self, a : np.ndarray):
+        t_max = a.shape[1]
+        diag = [derivative(player.benefit_function ,a[idx,t], order=5) for t in range(t_max) for idx, player in enumerate(self.list_players)]
+        return np.array(diag)
+
+    def jacobian_sum_damage_planning(self, a : np.ndarray, **kwargs):
+        t_max = a.shape[1]
+
+        sum_a = np.sum(a, axis=0)
+
+        CC = self.scm_game.carbon_model
+        TD = self.scm_game.temperature_model
+
+        carbon_AT, forcing, temperature_AT = self.scm_game.evaluate_trajectory(sum_a, tmax=t_max, **kwargs)
+
+        jac_carbon_AT = jacobian_linear_model(CC.Ac, CC.bc, CC.dc, t_max)
+        jac_forcing = jacobian_forcing(carbon_AT)
+        jac_temperature_AT = jacobian_linear_model(TD.At, TD.bt, TD.dt, t_max)
+        jac_damage = sum(self.deltas) * jacobian_damage_function(temperature_AT, self.damage_function)
+        jac_sum = jacobian_sum(t_max, self.N)
+        
+        jacobian =  jac_damage @ jac_temperature_AT @ jac_forcing @ jac_carbon_AT @ jac_sum
+
+        return jacobian
+
+    def jacobian_sum_utilities_planning(self, t_max,  a : np.ndarray, **kwargs):
+        a = np.reshape(a,(self.N, t_max),'F') # the reshape function is weird it's important
+        return self.jacobian_sum_benefice(a) - self.jacobian_sum_damage_planning(a, **kwargs)
+
+    def planning_social_optimum(self, t_max, **kwargs):
+        def sum_utilities_planning_wrapped(a):
+            return - self.sum_utilities_planning(t_max, a, **kwargs)
+
+
+        def jacobian_sum_utilities_planning_wrapped(a):
+            return - self.jacobian_sum_utilities_planning(t_max, a, **kwargs)
+
+        action_space = self.get_action_space()
+        bounds = np.tile(action_space, (t_max,1))
+
+        x0 = kwargs.get('x0', bounds[:,1])
+        if x0.shape != bounds[:,1].shape:
+            x0= x0.flatten()
+        bounds = Bounds(lb=bounds[:,0], ub=bounds[:,1], keep_feasible=True)
+
+        # res = minimize(sum_utilities_planning_wrapped ,x0=x0 , bounds=bounds, jac = jacobian_sum_utilities_planning_wrapped, tol = 1e-6, options={'maxiter': 1000, 'disp': 0})
+        res = minimize(sum_utilities_planning_wrapped ,x0=x0 , bounds=bounds, tol = 1e-6, options={'maxiter': 1000, 'disp': 0})
+        print(res.success)
+        return np.reshape(res.x  ,(self.N, t_max),'F')
+
+    def planning_SO(self, t_max = None, **kwargs):
+        if t_max is None:
+            t_max = self.T  
+        self.so_a_planning, self.so_sum_a_planning, self.so_u_planning, self.so_sum_u_planning, self.so_temp_planning = self.planning_game(self.planning_social_optimum, t_max=t_max, **kwargs)
+

@@ -86,11 +86,14 @@ def damage_polynome(coefficients : np.ndarray) -> callable :
 
         """
         sum_action = kwargs.get('sum_action', None)
-        scm = kwargs.get('scm', None)
+        scm : Simple_Climate_Model = kwargs.get('scm', None)
         gdp_max = kwargs.get('GDP_max', 100)
 
         if temp is None :
-            temp = scm.five_years_atmospheric_temp(sum_action)
+            if type(sum_action) is not np.float64 :
+                temp = scm.evaluate_trajectory(sum_action, **kwargs)
+            else :
+                temp = scm.evaluate_trajectory(np.array([sum_action]))[-1][0]
         d = np.polyval(np.flip(coefficients),temp)
         return gdp_max/100 * d 
     return damage
