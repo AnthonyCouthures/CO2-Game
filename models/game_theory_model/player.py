@@ -131,18 +131,36 @@ class player_class:
         else:
             kwargs.pop('GDP_max', None)
         scm = kwargs.pop('scm', self.scm)
-        temp = kwargs.pop('temp', None)
+        temp = kwargs.pop('temp', scm.five_years_atmospheric_temp(action + sum_other_actions))
+        damages = self.delta * (self.damage_function(temp= temp, sum_action = action + sum_other_actions, scm=scm, **kwargs))**self.alpha
+
         
-        return self.benefit_function(action) - self.delta * (self.damage_function(temp= temp, sum_action = action + sum_other_actions, scm=scm, **kwargs))**self.alpha 
+        return self.benefit_function(action) -  damages
 
     def utility_sum_over_t(self, emissions, others_emissions, **kwargs):
+
+
+        temperature_target = kwargs.pop('temperature_target', None)
+        final_multiplier = kwargs.pop('final_multiplier',  FINAL_MULTIPLIER)
         if self.discount !=1:
             discount = self.discount**np.arange(len(emissions))
         else:
             discount = 1
         all_emissions = emissions + others_emissions
+        try:
+            len(all_emissions)
+        except:
+            all_emissions = np.array([all_emissions])
+   
         atmospheric_temperatures = self.scm.evaluate_trajectory(all_emissions, **kwargs)[-1]
-        damages = self.delta  * self.damage_function(atmospheric_temperatures)
+
+        if self.damage_in_percentage:
+            damages = self.delta  * self.damage_function(atmospheric_temperatures, GDP_max=self.GDP_max)**self.alpha
+        else:
+            damages = self.delta  * self.damage_function(atmospheric_temperatures) **self.alpha
+
+        if temperature_target is not None:
+            damages = damages + final_multiplier * (atmospheric_temperatures[-1] - temperature_target)
         benefit = self.benefit_function(emissions)
         return np.sum(discount * (benefit - damages))
 
@@ -172,46 +190,47 @@ class player_class:
         repeated_action_set = np.tile(self.action_set, (len(others_emissions),1))
         bounds = Bounds(lb = repeated_action_set[:,0], ub=repeated_action_set[:,1], keep_feasible=True) 
         x0 = kwargs.get('x0', repeated_action_set[:,0])
-
-        res = minimize(response, x0 = x0, bounds=bounds,  tol = 1e-5, options={'maxiter': 10000, 'disp': 0})
+        res = minimize(response, x0 = x0, bounds=bounds)
         if not res.success:
             print(res.success)
         return res.x
+    
 
 
 
 
-    def utility_n_shot(self, n: int, action : np.ndarray, sum_other_actions : np.ndarray) -> float:
-        """IN PROGRESS Utility of the player.
 
-        Parameters
-        ----------
-        action : float
-            Emission of the player.
-        sum_other_actions : float
-            Emissions of other players.
-        GDP_max : float
-            Maximum GDP attainable of the player. Often it will be remplace with self.GDP_max but in some case it's usefull to have it as a parameter.
-        temp : float, optional
-            Current temperature. If not provided, the player will generate a temperature with the given actions with the SCM. If given, it speed up the calculs, by default None
-        scm : bool, optional
-            SCM used by the player. If not provided, the player will generate a temperature with the given actions with this specific SCM, by default False
+    # def utility_n_shot(self, n: int, action : np.ndarray, sum_other_actions : np.ndarray) -> float:
+    #     """IN PROGRESS Utility of the player.
 
-        Returns
-        -------
-        float
-            _description_
-        """
-        action_set = deepcopy(self.action_set)
-        GDP_max = deepcopy(self.GDP_max)
-        benefit_function = deepcopy(self.benefit_function)
-        scm = deepcopy(self.scm)
-        utility = 0
-        for k in range(n):
-            utility =+ benefit_function(action[k]) - self.delta * (self.damage_function(action + sum_other_actions, scm, GDP_max))**self.alpha
-            action_set, GDP_max, benefit_function = self.simulate_update_player()
+    #     Parameters
+    #     ----------
+    #     action : float
+    #         Emission of the player.
+    #     sum_other_actions : float
+    #         Emissions of other players.
+    #     GDP_max : float
+    #         Maximum GDP attainable of the player. Often it will be remplace with self.GDP_max but in some case it's usefull to have it as a parameter.
+    #     temp : float, optional
+    #         Current temperature. If not provided, the player will generate a temperature with the given actions with the SCM. If given, it speed up the calculs, by default None
+    #     scm : bool, optional
+    #         SCM used by the player. If not provided, the player will generate a temperature with the given actions with this specific SCM, by default False
 
-        return utility
+    #     Returns
+    #     -------
+    #     float
+    #         _description_
+    #     """
+    #     action_set = deepcopy(self.action_set)
+    #     GDP_max = deepcopy(self.GDP_max)
+    #     benefit_function = deepcopy(self.benefit_function)
+    #     scm = deepcopy(self.scm)
+    #     utility = 0
+    #     for k in range(n):
+    #         utility =+ benefit_function(action[k]) - self.delta * (self.damage_function(action + sum_other_actions, scm, GDP_max))**self.alpha
+    #         action_set, GDP_max, benefit_function = self.simulate_update_player()
+
+    #     return utility
 
 
 
@@ -239,11 +258,13 @@ class player_class:
         def response(x):
             return -self.utility_one_shot(x, sum_other_actions)
 
-        res = minimize_scalar(response, bounds=self.action_set, method='bounded', options={'xatol': 1e-05, 'maxiter': 1000, 'disp': 0})
+        res = minimize_scalar(response, bounds=self.action_set, method='bounded', options={ 'maxiter': 1000, 'disp': 0})
         return res.x
 
     def update_scm(self, sum_actions : float, exogeneous_emission : float, exogeneous_radiative_forcing) -> None:
         self.scm.five_years_cycle_deep(sum_actions, exogeneous_emission, exogeneous_radiative_forcing)
+
+
 
 
         
@@ -266,6 +287,10 @@ class player_class:
         self.action_set[1] =  self.action_set[1] * (1 + ratio * self.increase_co2)
         self.GDP_max = self.GDP_max * (1 + ratio*0.02)
         self.benefit_function = self.benefit_shape(self.GDP_max, self.action_set[1], self.percentage_green)
+
+
+
+    
 
     def simulate_update_player(self, previous_emission : float, action_set : np.ndarray, GDP_max : float,
                      percentage_green):

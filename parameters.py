@@ -67,7 +67,7 @@ DELTAS = np.array([1.1847,
                     1.1248,
                     0.9074,
                     1.2866,
-                    1.1847])**2
+                    1.1847])
 r"""Default damage multiplier. 
 
 References
@@ -76,6 +76,8 @@ References
 .. [1] http://www.fund-model.org/MimiFUND.jl/latest/tables/#Table-RT:-Regional-temperature-conversion-factor-1
 """
 
+
+
 # PIB max des joueurs, j'ai pris le PIB 2020                
 
 GDP_MAX = np.array([14.63,
@@ -83,7 +85,7 @@ GDP_MAX = np.array([14.63,
                     13.89,
                     2.5,
                     1.42,
-                    26.27 - 14.63])
+                    26.27 - 14.63])*10
 r"""Default maximum GDP 
 References
 ----------
@@ -101,6 +103,9 @@ BENEFITS_CONCAVE = [benefit_quadratic_concave for i in range(N)]
 "Shortcut for a list of benefit function, the benefit functions are concave."
 BENEFITS_SIGMOID = [benefit_sigm for i in range(N)]
 "Shortcut for a list of benefit function, the benefit functions are sigmoidal"
+BENEFITS_LOG = [benefit_log for i in range(N)]
+BENEFITS_ROOT = [benefit_root for i in range(N)]
+BENEFITS_ECO = [benefit_econmical_shape for i in range(N)]
 
 
 BENEFITS_CONVEX = [benefit_quadratic_convex_with_percentage_green for i in range(N)]
@@ -124,3 +129,7 @@ PERCENTAGE_GDP = True
 "Boolean. If True, the damage are expressed as loss in percentage of GDP."
 
 DISCOUNT = 1
+
+TARGET_TEMPERATURE = 2
+
+FINAL_MULTIPLIER = -20

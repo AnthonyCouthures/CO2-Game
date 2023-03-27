@@ -260,7 +260,6 @@ class Simple_Climate_Model :
         exogeneous_radiative_forcing = kwargs.get('exogeneous_radiative_forcing', self.non_co2_radiative_forcing)
         t0 = kwargs.get('t0', 0)
         tmax = kwargs.get('tmax', len(emissions)) + t0
-
         all_emissions = emissions + exogeneous_emissions[t0:tmax]
         atmospheric_carbon = self.evalutate_linear_model(all_emissions, self.carbon_model.Ac,
                                                          self.carbon_model.bc, self.carbon_model.dc, carbon_state)
