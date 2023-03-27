@@ -7,13 +7,6 @@ docs/Makefile
 plots
 cachedir
 plots_paper
-Untitled-1.ipynb
-Untitled-1.py
-Untitled-2.ipynb
-brouillion.ipynb
-data.py
-simulateur.ipynb
-simulateur.ipynb
 Untitled-1.py
 Untitled-1.ipynb
 simulateur.ipynb
@@ -25,3 +18,4 @@ jacobian.ipynb
 data.py
 brouillion.ipynb
 all_plot_possible.ipynb
+notebook
