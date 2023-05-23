@@ -25,3 +25,22 @@ ENV_Growth_model
 jacobian.ipynb
 empty
 notebook
+gallery.ipynb
+simu_acticle.ipynb
+gallery copy.ipynb
+simu_acticle2.ipynb
+journal
+ca
+figure.aux
+figure.log
+figure.synctex.gz
+figure.tex
+figures-PC-AnthonyCouthures.tex
+figures.tex
+output.png
+output2.png
+sample.npy
+data/CMIP6.ipynb
+data/SSP_CMIP6_201811.csv
+test/joblib/
+**/__pycache__/
