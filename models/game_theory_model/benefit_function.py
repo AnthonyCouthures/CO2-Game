@@ -85,7 +85,7 @@ def benefit_quadratic_concave(GDP_max : float, e_max : float, percentage_green :
         return np.polyval(np.flip(benef_coef),x)
     return benef
 
-def benefit_polynome(GDP_max : float, e_max : float, percentage_green : float =0, **kwargs) -> callable :
+def benefit_polynome(GDP_max : float, e_max : float, percentage_green : float =0,  **kwargs) -> callable :
     r"""Basic concave benefit funtion. This function attain its maximum at maximum emsission. 
     
 
@@ -115,7 +115,7 @@ def benefit_polynome(GDP_max : float, e_max : float, percentage_green : float =0
     coefficients = kwargs.get('coef', 0)
 
     def benef(x,**kwargs):
-        return np.polyval(np.flip(coefficients),x)
+        return np.polyval(np.flip(coefficients),np.log(x))
     return benef
 
 def benefit_log(GDP_max, e_max, percentage_green = 0, deg=1):
@@ -189,7 +189,7 @@ def benefice_exponential(GDP_max : float, e_max : float, power : float = 0.3) :
         return ((1-np.exp(-(x/e_max)) )/(1-np.exp(-1)))**power * GDP_max
     return benef
 
-def benefit_sigm(GDP_max : float, e_max :float, percentage_green =0 , power : float = 10) : 
+def benefit_sigm_(GDP_max : float, e_max :float, percentage_green =0 , power : float = 10) : 
     r"""Basic sigmoidal benefit funtion. This function attain its maximum at maximum emsission. 
     
     Parameters
@@ -222,6 +222,48 @@ def benefit_sigm(GDP_max : float, e_max :float, percentage_green =0 , power : fl
     
     def benef(x) :
         return ( (1-np.exp(-x)) / (1-np.exp(-e_max)) )**power * GDP_max * (1 - percentage_green) + GDP_max * percentage_green
+    return benef
+
+def sigmoid(e, K, r , e0, A=0, C=1, Q=1, nu=1):
+    return A + (K - A)/ (C + Q * np.exp(-r * ( e - e0 )))**(1/nu)
+
+def benefit_sigm(GDP_max : float, e_max :float, percentage_green =0 , power : float = 1, **kwargs) : 
+    r"""Basic sigmoidal benefit funtion. This function attain its maximum at maximum emsission. 
+    
+    Parameters
+    ----------
+    GDP_max : float
+        Maximum GDP attainable.
+    e_max : float
+        Maximum emission.
+    percentage_green : int, optional
+        Percentage of the benefit function independant of CO2, by default 0
+    power : float, optional
+        Power p of the sigmoid, by default 10
+    
+
+    Returns
+    -------
+    callable
+            Benefit function taking into argument CO2 emissions.
+
+    Notes
+    -----
+
+    The function is given by
+
+    .. math:: 
+
+        B(X) = (\frac{1 - e^{-X}}{1 - e^{e_{max}}})^{p} GDP_{max} (1 - \%_{green}) +  GDP_{max} \%_{green}
+
+    """
+
+    r0 = kwargs.get('r', 1 / (GDP_max  / e_max))
+    e0 = kwargs.get('e', 1 / r0 )
+    a = GDP_max* ( 1 - percentage_green) / ( sigmoid(e_max, GDP_max, r0, e0) - sigmoid(0, GDP_max, r0, e0) )
+    b = -a * sigmoid(0, GDP_max, r0, e0) + GDP_max * percentage_green
+    def benef(x) :
+        return a * sigmoid(x, GDP_max, r0, e0)  + b 
     return benef
 
 

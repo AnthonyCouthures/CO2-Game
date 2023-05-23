@@ -2,24 +2,28 @@
 
 """
 
+
 import numpy as np
-from scipy.optimize import *
+from scipy.optimize import Bounds,minimize, NonlinearConstraint
 from .geophysic_models import *
 from .game_theory_model.player import player_class
 from .game_theory_model.jacobian import * 
 from copy import deepcopy
 from parameters import *
-
+from functools import partial
+from tqdm import tqdm
+from collections.abc import Callable
+import time 
 
 
 
 def create_players(list_of_names : list[str] = NAMES,
-                    list_action_sets : list[tuple] = ACTION_SETS,
-                    list_benefit_functions : list[callable] = BENEFITS,
-                    list_GDP_initial : list[float] = GDP_MAX,
-                    damage_function : callable = DAMAGE,
+                    list_action_sets : np.ndarray = ACTION_SETS,
+                    list_benefit_functions : list[Callable] = BENEFITS,
+                    list_GDP_initial : np.ndarray = GDP_MAX,
+                    damage_function : Callable = DAMAGE,
                     alpha : float = ALPHA,
-                    list_deltas : list[float] = DELTAS,
+                    list_deltas : np.ndarray = DELTAS,
                     list_coef_increase_co2 : list[float] = INCREASE_COEF_CO2_RATIO,
                     list_percentage_green : list[float] = PERCENTAGES_GREEN,
                     damage_in_percentage : bool = PERCENTAGE_GDP,
@@ -87,7 +91,7 @@ class Game:
 
         self.temperature_target = temperature_target
         self.final_multiplier = final_multiplier
-        self.T : int = int((horizon - initial_time)/time_step)+1
+        self.T : int = int((horizon - initial_time)/time_step)
         "Number of time the game is repeated"
         # Business As Usual
 
@@ -97,9 +101,7 @@ class Game:
         self.strat_sum_utilities_profiles = np.zeros(self.T)
         self.strat_temp_profile = np.zeros(self.T)
 
-
         # Simple Climate Model
-
         self.scm_game : Simple_Climate_Model = deepcopy(scm)
         "Simple eClimate model of the game."
 
@@ -112,7 +114,7 @@ class Game:
         self.list_players : list[player_class] = deepcopy(list_players)
         "List of player in the game with their characteristics."
 
-        self.damage_function = self.list_players[0].damage_function
+        self.list_damage_function = [player.damages for player in self.list_players]
 
         self.update_allowed = update_allowed
 
@@ -127,7 +129,7 @@ class Game:
             player.reset()
 
 
-    def update_player(self, actions : np.ndarray):
+    def update_player(self, actions : np.ndarray, t : int):
         """Function which update the player with respect to their previous actions.
 
         Parameters
@@ -136,7 +138,7 @@ class Game:
             Previous actions of the players.
         """
         for idx, player in enumerate(self.list_players):
-            player.update_player(actions[idx])
+            player.update_player(actions[idx], t)
 
 
     def update_players_scm(self):
@@ -160,7 +162,7 @@ class Game:
         return fcts
 
 
-    def get_action_space(self) -> np.ndarray :
+    def get_action_space_at_t(self, t : int) -> np.ndarray :
         """Function which extract the action sets of the players of the game at current state.
 
         Returns
@@ -170,7 +172,22 @@ class Game:
         """
         action_space = np.zeros((self.N,2))
         for idx, player in enumerate(self.list_players):
-            action_space[idx] = deepcopy(player.action_set)
+            action_space[idx] = deepcopy(player.action_set[t])
+        return action_space
+    
+    def get_action_space(self, **kwargs) -> np.ndarray :
+        """Function which extract the action sets of the players of the game at current state.
+
+        Returns
+        -------
+        np.ndarray
+            Array describing the action set :math:`\mathcal{A}` of the game. 
+        """
+        t0 = kwargs.get('t0', 0)
+        tmax = kwargs.get('tmax', self.T) + t0
+        action_space = np.zeros((self.N, tmax, 2))
+        for idx, player in enumerate(self.list_players):
+            action_space[idx, t0:tmax] = deepcopy(player.action_set[t0:tmax])
         return action_space
 
     def get_GDP_max(self) -> np.ndarray :
@@ -186,7 +203,7 @@ class Game:
             GDP_max[idx] = deepcopy(player.GDP_max)
         return GDP_max
 
-    def repeated_one_shot_game(self, rule : callable, **kwargs):
+    def repeated_one_shot_game(self, rule : Callable, **kwargs):
         """Function which simulate repetition of the one shot game for a given solution concept. For example,
         Nash equilibria, Social optimum,...
 
@@ -220,65 +237,38 @@ class Game:
         a_p = np.zeros((self.N, self.T)) 
         sum_a_p = np.zeros(self.T)
         u_p = np.zeros((self.N, self.T))
-        u_fct_p = [None] * self.T
-        a_space_p = np.zeros((self.N,self.T,2))
-        gdp_max_p = np.zeros((self.N, self.T))
-        temp_p = np.zeros(self.T)
-
+        temperature_AT = np.zeros(self.T)
         # Reset the game: SCM, players' utility and action sets.
         self.reset()
-
         # Loop of the games.
-        for time in range(self.T):
+        for time in tqdm(range(self.T), desc='Repeated game'):
             ## Initialization of the One-Shot game.
-
             # Players get the SCM values from the SCM of the One-game. 
             self.update_players_scm()
-
-
             ## Realization of the game.
-
             # Players choose their actions following the given rule.
-            a_p[:,time] = rule()
-
+            a_p[:,time] = rule(t=time)
             # Actions are summed 
             sum_a_p[time] = np.sum(a_p[:,time])
-
-            # We save the utility functions of the players for the current game.
-            u_fct_p[time] = self.get_players_utilities()
-
-            # We save the actions space of the players for the current game.
-            a_space_p[:,time,:] = self.get_action_space() 
-
-            # We save the GDP_max of the players for the current game.
-            gdp_max_p[:,time] = self.get_GDP_max()
-
             if self.update_allowed :
                 ## Updating of the players.
-
                 # The players utility and action set get update with respect to the previous action
-                self.update_player(a_p[:,time])
-
+                self.update_player(a_p[:,:time], time)
             ## Climate modelization take place
-
             # Players' emissions are injected in the SCM.
-            self.scm_game.five_years_cycle_deep(sum_a_p[time], self.ex_e[time], self.ex_f[time])
-
+            self.scm_game.five_years_cycle_deep(sum_a_p[time]) #, self.ex_e[time], self.ex_f[time])
             # We save the temperature of the game at current state.
-            temp_p[time] = self.scm_game.atmospheric_temp
-
+            temperature_AT[time] = self.scm_game.atmospheric_temp
         # Calculus of the utilities values for all games.
         for idx, player in enumerate(self.list_players):
-            
-            u_p[idx] = player.benefit_function(a_p[idx]) - player.delta * player.damage_function(temp_p, **kwargs)
+            u_p[idx] = player.benefit(a_p[idx], **kwargs) - player.damages(sum_a_p, temp = temperature_AT, **kwargs)
 
         # Sum of the utilities values for all games.
-        sum_u_val_p = np.sum(u_p, axis=0)
+        sum_u_p = np.sum(u_p, axis=0)
 
-        return a_p, sum_a_p, u_p, u_fct_p, sum_u_val_p, a_space_p, temp_p
-
-
-    def best_response_dynamic_one_shot(self, step_criterion : int = 100, utility_criterion : float = 0.0001):
+        return a_p, sum_a_p, u_p, sum_u_p, temperature_AT
+    
+    def best_response_dynamic_one_shot(self, t, step_criterion : int = 100, utility_criterion : float = 1e-10):
         """Best Response Dynamic function which allow us to find Nash equilibria.
 
         Parameters
@@ -313,7 +303,7 @@ class Game:
                 sum_other_actions = np.sum(list_action) - list_action[indice]
 
                 # Calculate the Best Responce of the player indice for the given sum of other players' emissions.
-                list_action[indice] = self.list_players[indice].best_response_one_shot(sum_other_actions)
+                list_action[indice] = self.list_players[indice].best_response_one_shot(sum_other_actions, t)
                 # Previously 
                 # list_action[indice] = round(self.list_players[indice].best_response_one_shot(sum_other_actions), 5)
 
@@ -326,70 +316,49 @@ class Game:
 
         return list_of_all_action[-1]
 
-    def one_shot_game(self)-> None:
+    def one_shot_game(self, t : int)-> tuple:
         utilities = np.zeros(self.N)
             
-        actions = self.best_response_dynamic_one_shot()
+        actions = self.best_response_dynamic_one_shot(t)
         sum_action = np.sum(actions)
 
 
         for indice in range(self.N):
             player = self.list_players[indice]
-            utilities[indice] = player.utility_one_shot(actions[indice], sum_action-actions[indice])
+            utilities[indice] = player.utility_one_shot(actions[indice], sum_action-actions[indice], t)
         
         sum_utilities = np.sum(utilities)
 
         return actions,  sum_action, utilities, sum_utilities
     
-    def one_shot_game_NE(self) -> None:
+    def one_shot_game_NE(self, t=0) -> None:
+        self.ne_a_p, self.ne_sum_a_p, self.ne_u_p, self.ne_sum_u_p = self.one_shot_game(t)
 
-        self.ne_a_p, self.ne_sum_a_p, self.ne_u_p, self.ne_sum_u_p = self.one_shot_game()
-
-    def repeated_one_shot_game_NE(self)-> None:
-
-        self.ne_a_p, self.ne_sum_a_p, self.ne_u_p, self.ne_u_fct_p, self.ne_sum_u_p, self.ne_a_space_p, self.ne_temp_p = self.repeated_one_shot_game(self.best_response_dynamic_one_shot)
+   
+    def business_as_usual(self, t : int):
+        action_space = self.get_action_space_at_t(t = t)
+        return action_space[:,t,1]
     
-    
-    def business_as_usual(self):
-
-        action_space = self.get_action_space()
-        return action_space[:,1]
-    
-
     def repeated_one_shot_game_BAU(self)-> None:
  
-        self.bau_a_p, self.bau_sum_a_p, self.bau_u_p, self.bau_u_fct_p, self.bau_sum_u_p, self.bau_a_space_p, self.bau_temp_p = self.repeated_one_shot_game(self.business_as_usual)
+        self.bau_a_p, self.bau_sum_a_p, self.bau_u_p, self.bau_sum_u_p, self.bau_temp_p = self.repeated_one_shot_game(self.business_as_usual)
 
-
-    def fct_sum_utilities_one_shot(self, actions : np.ndarray) -> float:
-
+    def fct_sum_utilities_one_shot(self, actions : np.ndarray, t : int) -> float:
         sum_actions = np.array(np.sum(actions))
         sum_utilities = 0
-
         for idx, player in enumerate(self.list_players) :
-            sum_utilities = sum_utilities + player.utility_sum_over_t(np.array(actions[idx]), sum_actions - actions[idx])
+            sum_utilities = sum_utilities + player.utility_one_shot(np.array(actions[idx]), sum_actions - actions[idx], t)
         return sum_utilities
 
-
-    def social_optimum_one_shot(self) -> np.ndarray:
-
-        bounds = self.get_action_space()
+    def social_optimum_one_shot(self, t : int) -> np.ndarray:
+        bounds = self.get_action_space_at_t(t = t)
         boundaries = Bounds(lb=bounds[:,0], ub=bounds[:,1], keep_feasible=True)
-
         def fct_social_optimum(x : np.ndarray):
-            return -self.fct_sum_utilities_one_shot(x)
-
+            return -self.fct_sum_utilities_one_shot(x, t)
         res = minimize(fct_social_optimum, x0=bounds[:,1], bounds=boundaries)
-
         return res.x
-    
 
-    def repeated_one_shot_game_SO(self)-> None:
-        self.so_a_p, self.so_sum_a_p, self.so_u_p, self.so_u_fct_p, self.so_sum_u_p, self.so_a_space_p, self.so_temp_p = self.repeated_one_shot_game(self.social_optimum_one_shot)
-
-                                                             
-        
-    def repeated_one_shot_game_with_strategies_profile(self, array_action_profile : np.ndarray) -> None:
+    def repeated_one_shot_game_with_strategies_profile(self, array_action_profile : np.ndarray, t : int) -> None:
         self.reset()
         
         self.strat_action_profiles = array_action_profile
@@ -402,12 +371,10 @@ class Game:
         for indice in range(self.N):
             player = self.list_players[indice]
             self.strat_utilities_profiles[indice] = player.utility_one_shot(self.strat_action_profiles[indice],
-                                                                     self.strat_sum_action_profiles-self.strat_action_profiles[indice], self.strat_temp_profile)
-                                                                     
+                                                                     self.strat_sum_action_profiles-self.strat_action_profiles[indice], t, temp=self.strat_temp_profile)                                              
         self.strat_sum_utilities_profiles = np.sum(self.strat_utilities_profiles,axis = 0)
 
-
-    def one_shot_game_with_strategies_profile(self, array_action : np.ndarray, sum_action: float) -> None:
+    def one_shot_game_with_strategies_profile(self, array_action : np.ndarray, sum_action: float) -> np.ndarray:
         utilities = np.zeros(self.N)
 
         # temp = self.scm_game.five_years_atmospheric_temp(sum_action)
@@ -415,10 +382,20 @@ class Game:
         for indice in range(self.N):
             player = self.list_players[indice]
             utilities[indice] = player.utility_sum_over_t(array_action[indice],
-                                                                     sum_action - array_action[indice])
-                                                                     
-
+                                                                     sum_action - array_action[indice], t=0)
         return utilities
+    
+    def game_with_strategies_profile(self, array_action : np.ndarray, sum_action: np.ndarray, **kwargs) -> tuple:
+        utilities = np.zeros(self.N)
+
+        temp = self.scm_game.evaluate_trajectory(sum_action, **kwargs)[-1]
+
+        for indice in range(self.N):
+            player = self.list_players[indice]
+            utilities[indice] = player.utility_sum_over_t(array_action[indice],
+                                                                     sum_action - array_action[indice],
+                                                                     temp = temp)
+        return utilities, temp
 
     def get_players_planning_utilities(self):
         """Function which extract utility functions of the players. 
@@ -433,115 +410,41 @@ class Game:
             fcts.append(deepcopy(player.utility_sum_over_t))
         return fcts
 
-    def planning_game(self, rule : callable, t_max = None, **kwargs):
+    def planning_game(self, rule : Callable,  **kwargs):
 
+        tmax = kwargs.get('tmax', self.T)
         # Creation of the futures return.
-        if t_max is None:
-            self.reset()
 
-            t_max = self.T
-        a_p = np.zeros((self.N, t_max)) 
-        sum_a_p = np.zeros(t_max)
-        u_p = np.zeros((self.N, t_max))
-
+        a_p = np.zeros((self.N, tmax)) 
+        sum_a_p = np.zeros(tmax)
+        u_p = np.zeros((self.N, tmax))
         # Reset the game: SCM, players' utility and action sets.
-
         ## Initialization of the planning game.
-
         # Players get the SCM values from the SCM of the planning game. 
         self.update_players_scm()
-
         ## Realization of the game.
-
         # Players choose their actions following the given rule.
-        a_p = rule(t_max, **kwargs)
+        a_p = rule(**kwargs)
         # Actions are summed 
         sum_a_p = np.sum(a_p, axis=0)
-
         ## Climate modelization 
-
         # Players' emissions are injected in the SCM.
-        carbon_AT, forcing, temperature_AT =  self.scm_game.evaluate_trajectory(sum_a_p, **kwargs)
+        temperature_AT =  self.scm_game.evaluate_trajectory(sum_a_p, **kwargs)[-1]
 
         # Calculus of the utilities values for all games.
-        for idx, player in enumerate(self.list_players):
 
-            u_p[idx] = player.benefit_function(a_p[idx]) - player.delta * player.damage_function(temperature_AT, **kwargs)
+        for idx, player in enumerate(self.list_players):
+            u_p[idx] = player.benefit(a_p[idx], **kwargs) - player.damages(sum_a_p, temp = temperature_AT, **kwargs)
         # Sum of the utilities values for all games.
         sum_u_p = np.sum(u_p, axis=0)
 
         return a_p, sum_a_p, u_p, sum_u_p, temperature_AT
 
-
-    def potential_planning(self, t_max, a : np.ndarray, **kwargs):
-
-        a = np.reshape(a, (self.N,t_max), 'F' )
-
-        all_emissions = np.sum(a, axis=0)
-
-        temperature_AT = self.scm_game.evaluate_trajectory(all_emissions, tmax = t_max, **kwargs)
-
-        benefit = sum([1/player.delta *  sum([player.benefit_function(a[idx,t]) for t in range(t_max)]) for idx,player in enumerate(self.list_players)])
-        damage = sum(self.damage_function(temperature_AT))
-        value = benefit - damage - self.final_multiplier *  ( temperature_AT[-1] - self.temperature_target  )
-        return value
+    def planning_gradient_descent(self, **kwargs):
+        self.ne_a_planning_gd, self.ne_sum_a_planning_gd, self.ne_u_planning_gd, self.ne_sum_u_planning_gd, self.ne_temp_planning_gd = self.planning_game(self.gradient_over_potential, **kwargs)
 
 
-    def jacobian_damage_planning_all_players(self, a : np.ndarray, **kwargs):
-        t_max = a.shape[1]
-
-        sum_a = np.sum(a, axis=0)
-
-        CC = self.scm_game.carbon_model
-        TD = self.scm_game.temperature_model
-
-        carbon_AT, forcing, temperature_AT = self.scm_game.evaluate_trajectory(sum_a, tmax=t_max, **kwargs)
-
-        jac_carbon_AT = jacobian_linear_model(CC.Ac, CC.bc, CC.dc, t_max)
-        jac_forcing = jacobian_forcing(carbon_AT)
-        jac_temperature_AT = jacobian_linear_model(TD.At, TD.bt, TD.dt, t_max)
-        jac_damage = jacobian_damage_function(temperature_AT, self.damage_function)
-        jac_sum = jacobian_sum(t_max, self.N)
-        
-        jacobian =  jac_damage @ jac_temperature_AT @ jac_forcing @ jac_carbon_AT @ jac_sum
-
-        return jacobian
-
-
-    def jacobian_benefice(self, a : np.ndarray):
-        t_max = a.shape[1]
-        diag = [1/player.delta *  derivative(player.benefit_function ,a[idx,t]) for t in range(t_max) for idx, player in enumerate(self.list_players)]
-        return np.array(diag).T
-
-    def jacobian_potential_planning(self, t_max,  a : np.ndarray, **kwargs):
-        a = np.reshape(a,(self.N, t_max),'F') # the reshape function is weird it's important
-        return self.jacobian_benefice(a) - self.jacobian_damage_planning_all_players(a, **kwargs)
-
-    def gradient_over_potential(self, t_max, **kwargs):
-        def potential_planning_wrapped(a):
-            return - self.potential_planning(t_max, a, **kwargs)
-        def jacobian_potential_planning_wrapped(a):
-            return - self.jacobian_potential_planning(t_max, a, **kwargs)
-
-        action_space = self.get_action_space()
-        bounds = np.tile(action_space, (t_max,1))
-
-        x0 = kwargs.get('x0', bounds[:,1])
-        if x0.shape != bounds[:,1].shape:
-            x0= x0.flatten()
-            print('pass')
-        bounds = Bounds(lb=bounds[:,0], ub=bounds[:,1], keep_feasible=True)
-        print(potential_planning_wrapped(x0).shape)
-        res = minimize(potential_planning_wrapped ,x0=x0 , bounds=bounds, jac = jacobian_potential_planning_wrapped, tol = 1e-6, options={'maxiter': 1000, 'disp': 0})
-        return np.reshape(res.x  ,(self.N, t_max),'F')
-
-    def planning_gradient_descent(self, t_max = None, **kwargs):
-        if t_max is None:
-            t_max = self.T
-        self.ne_a_planning_gd, self.ne_sum_a_planning_gd, self.ne_u_planning_gd, self.ne_sum_u_planning_gd, self.ne_temp_planning_gd = self.planning_game(self.gradient_over_potential, t_max=t_max, **kwargs)
-
-
-    def best_response_dynamic_planning(self, t_max, step_criterion : int = 100, utility_criterion : float = 0.0001, **kwargs):
+    def best_response_dynamic_planning(self, step_criterion : int = 1000, utility_criterion : float = 1e-6, **kwargs):
         """Best Response Dynamic function which allow us to find Nash equilibria for the planning.
 
         Parameters
@@ -561,11 +464,14 @@ class Game:
         loss = 1000
         k = 0
         
+        t0 = kwargs.get('t0', 0)
+        tmax = kwargs.get('tmax', self.T) + t0
+
         ## Initialization of the BRDhb
-        action_space = self.get_action_space()
-        bounds = np.repeat(action_space[:,1].reshape(self.N, 1), t_max, axis = 1)
+        action_space = self.get_action_space(**kwargs)
+        upper_bounds = action_space[:,t0:tmax,1]/2
         # Initial action put at 0.
-        inital_action = kwargs.pop('x0', bounds)
+        inital_action = kwargs.pop('x0', upper_bounds)
         # Creation of the list of Best response actions.
         list_of_all_action = [inital_action]
 
@@ -576,9 +482,11 @@ class Game:
                 # Best response fonction of a players is a function of the sum of other actions.
                 # Sum of others players actions
                 sum_other_actions = np.sum(list_action, axis=0) - list_action[indice]
+                # print('sum_other_actions', sum_other_actions)
+                # print('list_action[indice]', list_action[:,indice])
 
                 # Calculate the Best Responce of the player indice for the given sum of other players' emissions.
-                list_action[indice] = self.list_players[indice].best_response_over_t(sum_other_actions, tmax= t_max, x0 = list_action[indice], **kwargs)
+                list_action[indice] = self.list_players[indice].best_response_over_t(sum_other_actions, x0 = list_action[indice], **kwargs)
                 
             #Increase in the iteration of the BRD
             k +=1
@@ -588,187 +496,549 @@ class Game:
             list_of_all_action.append(list_action)
         return list_of_all_action[-1]
 
-    def planning_BRD(self, t_max = None, **kwargs):
-        if t_max is None:
-            t_max = self.T
+    def planning_BRD(self, **kwargs):
         self.ne_a_planning_brd, self.ne_sum_a_planning_brd, self.ne_u_planning_brd, self.ne_sum_u_planning_brd, self.ne_temp_planning_brd = self.planning_game(
-            self.best_response_dynamic_planning, t_max=t_max, temperature_target = self.temperature_target, final_multiplier = self.final_multiplier, **kwargs)
+            self.best_response_dynamic_planning, temperature_target = self.temperature_target, final_multiplier = self.final_multiplier, **kwargs)
 
-    def planning_BRD_by_piece(self, t_max, **kwargs):
+    def minmax_value(self, idx_player : int, **kwargs):
+        t0 = kwargs.get('t0', 0)
+        tmax = kwargs.get('tmax', self.T) + t0
+        player = self.list_players[idx_player]
+        def BRD_wrapped(other_action : np.ndarray):
+            return player.best_response_over_t(other_action, **kwargs)
+        
+        def minmax(other_action : np.ndarray):
+            other_action = np.reshape(other_action,(self.N-1, tmax),'F')
+            player_action = BRD_wrapped(np.sum(other_action, axis =0))
+            sum_actions = np.sum(other_action, axis =0) + player_action
+            temp = player.scm.evaluate_trajectory(sum_actions, **kwargs)[-1]
+            return player.utility_sum_over_t(player_action, sum_actions - player_action, temp = temp, **kwargs)
+    
+        action_space =  np.delete(self.get_action_space(**kwargs), (idx_player), axis = 0)
+        bounds = action_space
+        x0 = kwargs.get('x0', action_space[:,t0:tmax,1]/2)
+        if x0.shape != bounds[:,t0:tmax,1].flatten().shape:
+            x0= x0.flatten('F')
+        bounds = Bounds(lb=bounds[:,t0:tmax,0].flatten('F'), ub=bounds[:,t0:tmax,1].flatten('F'), keep_feasible=False)
+        res = minimize(minmax, x0 = x0, bounds=bounds,  method='SLSQP', tol=1e-6, options={'maxiter': 10000, 'disp': 0}) 
+        if not res.success :
+            print(res)
+        return res.fun
+        
+
+        
+    def planning_over_t_piece(self, t_piece, rule, desc, **kwargs):
+        a_planning_piece        = np.zeros((self.N,self.T))
+        sum_a_planning_piece    = np.zeros(self.T)
+        u_planning_piece        = np.zeros((self.N, self.T))
+        sum_u_planning_piece    = np.zeros(self.T)
+        temp_planning_piece     = np.zeros(self.T)
+
+        for t in tqdm(range(0, self.T, t_piece), desc=desc):
+            t1=min(t_piece, self.T -t)
+            tmax = t_piece
+            a, sum_a, u, sum_u, temp = self.planning_game(
+            rule, t0= t, tmax=tmax, temperature_target = self.temperature_target, final_multiplier = self.final_multiplier,
+            **kwargs)
+
+            a_planning_piece[:,t:t+t_piece] = a[:,:t1]
+            sum_a_planning_piece[t:t+t_piece] = sum_a[:t1]
+            u_planning_piece[:,t:t+t_piece] = u[:,:t1]
+            sum_u_planning_piece[t:t+t_piece] = sum_u[:t1]
+            temp_planning_piece[t:t+t_piece] = temp[:t1]
+
+            for emissions in sum_a[:t1] :
+                self.scm_game.five_years_cycle_deep(emissions)
+        self.reset()
+        return a_planning_piece, sum_a_planning_piece, u_planning_piece, sum_u_planning_piece, temp_planning_piece
+
+    def planning_BRD_by_piece(self, t_piece, **kwargs):
+        self.ne_a_planning_brd_piece, self.ne_sum_a_planning_brd_piece, self.ne_u_planning_brd_piece, self.ne_sum_u_planning_brd_piece, self.ne_temp_planning_brd_piece = self.planning_over_t_piece(
+            t_piece, self.best_response_dynamic_planning, desc= 'Planning BRD, t_piece = {}'.format(t_piece), **kwargs)
+        
+    def planning_BRD_by_piece_return(self, t_piece, **kwargs):
+        return self.planning_over_t_piece(
+            t_piece, self.best_response_dynamic_planning, desc= 'Planning BRD, t_piece = {}'.format(t_piece), **kwargs)
+
+    def sum_utilities_planning(self, actions : np.ndarray, **kwargs) -> float:
+        tmax = kwargs.get('tmax', self.T)
+        actions = np.reshape(actions,(self.N, tmax),'F')
+        sum_actions = np.sum(actions, axis =0)
+        
+        temperature_AT = self.scm_game.evaluate_trajectory(sum_actions, **kwargs)[-1]
+        sum_utilities = 0
+        for idx, player in enumerate(self.list_players) :
+            sum_utilities += player.utility_sum_over_t(actions[idx], sum_actions - actions[idx], temp = temperature_AT, **kwargs )
+        return sum_utilities
+
+
+    def planning_social_optimum_with_constraint(self, **kwargs):
+        t0 = kwargs.get('t0', 0)
+        tmax = kwargs.get('tmax', self.T) + t0
+        constraint_player = kwargs.get('constraint_player', 0)  # Specify the player index for the constraint
+        constraint_value = kwargs.get('constraint_value', 0)  # Specify the maximum sum of utilities for the player
+        def sum_utilities_planning_wrapped(a):
+            return - self.sum_utilities_planning(a, **kwargs)
+        
+        def constraint_func(a):
+            a = np.reshape(a, (self.N, tmax),'F')
+            sum_actions = np.sum(a, axis=0)
+            temperature_AT = self.scm_game.evaluate_trajectory(sum_actions, **kwargs)[-1]
+
+            player_sum_utility = self.list_players[constraint_player].utility_sum_over_t(
+                a[constraint_player], sum_actions - a[constraint_player], temp = temperature_AT, **kwargs
+            )
+            return player_sum_utility 
+        
+        action_space = self.get_action_space(**kwargs)
+        bounds = action_space
+        x0 = kwargs.get('x0', action_space[:, t0:tmax, 1] / 2)
+        
+        if x0.shape != bounds[:, t0:tmax, 1].flatten().shape:
+            x0 = x0.flatten('F')
+        
+        bounds = Bounds(lb=bounds[:, t0:tmax, 0].flatten('F'), ub=bounds[:, t0:tmax, 1].flatten('F'), keep_feasible=True)
+        nlc = NonlinearConstraint(constraint_func, -np.inf, constraint_value)
+        constraint = {'type': 'ineq', 'fun': constraint_func}
+        
+        res = minimize(sum_utilities_planning_wrapped, x0=x0, bounds=bounds, method='SLSQP',
+                    tol=1e-6, options={'maxiter': 10000, 'disp': 0}, constraints=[nlc])
+        
+        if not res.success:
+            print(res)
+        
+        return np.reshape(res.x, (self.N, tmax - t0), 'F')
+    
+    def planning_inverse_social_optimum_with_constraint(self, **kwargs):
+        t0 = kwargs.get('t0', 0)
+        tmax = kwargs.get('tmax', self.T) + t0
+        constraint_player = kwargs.get('constraint_player', 0)  # Specify the player index for the constraint
+        constraint_value = kwargs.get('constraint_value', 0)  # Specify the minimum sum of utilities for the player
+        def sum_utilities_planning_wrapped(a):
+            return self.sum_utilities_planning(a, **kwargs)
+        
+        def constraint_func(a):
+            a = np.reshape(a, (self.N, tmax),'F')
+            sum_actions = np.sum(a, axis=0)
+            temperature_AT = self.scm_game.evaluate_trajectory(sum_actions, **kwargs)[-1]
+
+            player_sum_utility = self.list_players[constraint_player].utility_sum_over_t(
+                a[constraint_player], sum_actions - a[constraint_player], temp = temperature_AT, **kwargs
+            )
+            return player_sum_utility 
+        
+        action_space = self.get_action_space(**kwargs)
+        bounds = action_space
+        x0 = kwargs.get('x0', action_space[:, t0:tmax, 0])
+        
+        if x0.shape != bounds[:, t0:tmax, 1].flatten().shape:
+            x0 = x0.flatten('F')
+        
+        bounds = Bounds(lb=bounds[:, t0:tmax, 0].flatten('F'), ub=bounds[:, t0:tmax, 1].flatten('F'), keep_feasible=False)
+        nlc = NonlinearConstraint(constraint_func, constraint_value, np.inf)
+        constraint = {'type': 'ineq', 'fun': constraint_func}
+        
+        res = minimize(sum_utilities_planning_wrapped, x0=x0, bounds=bounds, method='SLSQP',
+                    tol=1e-6, options={'maxiter': 10000, 'disp': 0}, constraints=[nlc])
+        
+        if not res.success:
+            print(res)
+        
+        return np.reshape(res.x, (self.N, tmax - t0), 'F')
+
+    def planning_SO_with_constraint(self, **kwargs):
+        self.so_a_planning, self.so_sum_a_planning, self.so_u_planning, self.so_sum_u_planning, self.so_temp_planning = self.planning_game(self.planning_social_optimum_with_constraint,
+        temperature_target = self.temperature_target, final_multiplier = self.final_multiplier, **kwargs)    
+    
+    def planning_SO_by_piece_with_constraint(self, t_piece, **kwargs):
+        self.so_a_planning_piece, self.so_sum_a_planning_piece, self.so_u_planning_piece, self.so_sum_u_planning_piece, self.so_temp_planning_piece = self.planning_over_t_piece(
+            t_piece, self.planning_social_optimum_with_constraint, desc= 'Planning SO, t_piece = {}'.format(t_piece), **kwargs)
+        
+    def planning_SO_by_piece_with_constraint_return(self, t_piece, **kwargs):
+        return self.planning_over_t_piece(
+            t_piece, self.planning_social_optimum_with_constraint, desc= 'Planning SO, t_piece = {}'.format(t_piece), **kwargs)
+
+    def planning_SO_inverse_by_piece_with_constraint_return(self, t_piece, **kwargs):
+        return self.planning_over_t_piece(
+            t_piece, self.planning_inverse_social_optimum_with_constraint, desc= 'Planning SO, t_piece = {}'.format(t_piece), **kwargs)
+  
+    
+    
+    def planning_social_optimum(self, **kwargs):
+        t0 = kwargs.get('t0', 0)
+        tmax = kwargs.get('tmax', self.T) + t0
+        def sum_utilities_planning_wrapped(a):
+            return - self.sum_utilities_planning(a, **kwargs)
+        action_space = self.get_action_space(**kwargs)
+        bounds = action_space
+        x0 = kwargs.get('x0', action_space[:,t0:tmax,1]/2)
+        if x0.shape != bounds[:,t0:tmax,1].flatten().shape:
+            x0= x0.flatten('F')
+        bounds = Bounds(lb=bounds[:,t0:tmax,0].flatten('F'), ub=bounds[:,t0:tmax,1].flatten('F'), keep_feasible=True)
+        # start_time = time.time()
+
+        # res = minimize(sum_utilities_planning_wrapped ,x0=x0, method='SLSQP',  tol=1e-6 , bounds=bounds, options={'maxiter': 1000, 'disp': 0})
+        # end_time = time.time()
+        # print('SO SLSQP', end_time - start_time)
+        # start_time1 = time.time()
+
+        res = minimize(sum_utilities_planning_wrapped, x0 = x0, bounds=bounds,  method='L-BFGS-B', tol=1e-6, options={'maxiter': 10000, 'disp': 0}) #, constraints=constraint)#jac=jac,, constraints=constraint)
+        # res = minimize(response, x0 = x0, bounds=bounds,  method='SLSQP', tol=1e-6, options={'maxiter': 10000, 'disp': 0}) #, constraints=constraint)#jac=jac,, constraints=constraint)
+        # res = minimize(response, x0 = x0, bounds=bounds,  method='SLSQP', tol=1e-6, options={'maxiter': 10000, 'disp': 0}) #, constraints=constraint)#jac=jac,, constraints=constraint)
+        # end_time1 = time.time()
+        # print('SO L-BFGS-B:', end_time1 - start_time1)
+        return np.reshape(res.x  ,(self.N, tmax-t0),'F')
+    
+    def planning_SO(self, **kwargs):
+        self.so_a_planning, self.so_sum_a_planning, self.so_u_planning, self.so_sum_u_planning, self.so_temp_planning = self.planning_game(self.planning_social_optimum,
+        temperature_target = self.temperature_target, final_multiplier = self.final_multiplier, **kwargs)    
+    
+    def planning_SO_by_piece(self, t_piece, **kwargs):
+        self.so_a_planning_piece, self.so_sum_a_planning_piece, self.so_u_planning_piece, self.so_sum_u_planning_piece, self.so_temp_planning_piece = self.planning_over_t_piece(
+            t_piece, self.planning_social_optimum, desc= 'Planning SO, t_piece = {}'.format(t_piece), **kwargs)
+        
+    def planning_SO_by_piece_return(self, t_piece, **kwargs):
+        return self.planning_over_t_piece(
+            t_piece, self.planning_social_optimum, desc= 'Planning SO, t_piece = {}'.format(t_piece), **kwargs)
+    
+    def repeated_one_shot_game_NE(self, **kwargs)-> None:
+
+        self.ne_a_p, self.ne_sum_a_p, self.ne_u_p, self.ne_sum_u_p, self.ne_temp_p = self.planning_over_t_piece(
+            1, self.best_response_dynamic_planning, desc= 'Repeated One-shot BRD',**kwargs)
+
+    def repeated_one_shot_game_SO(self, **kwargs)-> None:
+        self.so_a_p, self.so_sum_a_p, self.so_u_p, self.so_sum_u_p, self.so_temp_p = self.planning_over_t_piece(
+            1, self.planning_social_optimum, desc= 'Repeated One-shot SO',**kwargs)
+
+    def receding_over_t_piece(self, t_piece, rule, desc, **kwargs):
+            a_planning_piece        = np.zeros((self.N,self.T))
+            sum_a_planning_piece    = np.zeros(self.T)
+            u_planning_piece        = np.zeros((self.N, self.T))
+            sum_u_planning_piece    = np.zeros(self.T)
+            temp_planning_piece     = np.zeros(self.T)
+
+            
+            for t in tqdm(range(0, self.T, 1), desc=desc):
+                t1=min(t_piece, self.T -t)
+                tmax = t_piece
+                a, sum_a, u, sum_u, temp = self.planning_game(
+                rule, t0= t, tmax=tmax, temperature_target = self.temperature_target, final_multiplier = self.final_multiplier,
+                **kwargs)
+
+                a_planning_piece[:,t:t+t_piece] = a[:,:t1]
+                sum_a_planning_piece[t:t+t_piece] = sum_a[:t1]
+                u_planning_piece[:,t:t+t_piece] = u[:,:t1]
+                sum_u_planning_piece[t:t+t_piece] = sum_u[:t1]
+                temp_planning_piece[t:t+t_piece] = temp[:t1]
+
+
+                self.scm_game.five_years_cycle_deep(sum_a[0])
+            self.reset()
+            return a_planning_piece, sum_a_planning_piece, u_planning_piece, sum_u_planning_piece, temp_planning_piece
+    
+    def receding_BRD_by_piece(self, t_piece, **kwargs):
+        self.ne_a_planning_brd_piece, self.ne_sum_a_planning_brd_piece, self.ne_u_planning_brd_piece, self.ne_sum_u_planning_brd_piece, self.ne_temp_planning_brd_piece = self.receding_over_t_piece(
+            t_piece, self.best_response_dynamic_planning, desc= 'Receding BRD, t_piece = {}'.format(t_piece), **kwargs)
+        
+
+    def receding_SO_by_piece(self, t_piece, **kwargs):
+        self.so_a_planning_piece, self.so_sum_a_planning_piece, self.so_u_planning_piece, self.so_sum_u_planning_piece, self.so_temp_planning_piece = self.receding_over_t_piece(
+            t_piece, self.planning_social_optimum, desc= 'Receding SO, t_piece = {}'.format(t_piece), **kwargs)
+        
+    def receding_BRD_by_piece_return(self, t_piece, **kwargs):
+        return self.receding_over_t_piece(
+            t_piece, self.best_response_dynamic_planning, desc= 'Receding BRD, t_piece = {}'.format(t_piece), **kwargs)
+        
+
+    def receding_SO_by_piece_return(self, t_piece, **kwargs):
+        return self.receding_over_t_piece(
+            t_piece, self.planning_social_optimum, desc= 'Receding SO, t_piece = {}'.format(t_piece), **kwargs)
+
+    def planning_BRD_by_piece_(self, t_piece, **kwargs):
         self.ne_a_planning_brd_piece        = np.zeros((self.N,self.T))
         self.ne_sum_a_planning_brd_piece    = np.zeros(self.T)
         self.ne_u_planning_brd_piece        = np.zeros((self.N, self.T))
         self.ne_sum_u_planning_brd_piece    = np.zeros(self.T)
         self.ne_temp_planning_brd_piece     = np.zeros(self.T)
 
-        # carbon_state = self.scm_game.carbon_state
-        # temperature_state = self.scm_game.temperature_state
-        
         for t in range(self.T):
-            # print(carbon_state)
-            # print(temperature_state)
 
+            tmax=min(t_piece, self.T -t)
             ne_a_planning_brd_piece, ne_sum_a_planning_brd_piece, ne_u_planning_brd_piece, ne_sum_u_planning_brd_piece, ne_temp_planning_brd_piece = self.planning_game(
-            self.best_response_dynamic_planning, t0= t, t_max=min(t_max, self.T -t), temperature_target = self.temperature_target, final_multiplier = self.final_multiplier,
+            self.best_response_dynamic_planning, t0= t, tmax=tmax, temperature_target = self.temperature_target, final_multiplier = self.final_multiplier,
             **kwargs)
 
-            self.ne_a_planning_brd_piece[:,t] = ne_a_planning_brd_piece[:,0]
-            self.ne_sum_a_planning_brd_piece[t] = ne_sum_a_planning_brd_piece[0]
-            self.ne_u_planning_brd_piece[:,t] = ne_u_planning_brd_piece[:,0]
-            self.ne_sum_u_planning_brd_piece[t] = ne_sum_u_planning_brd_piece[0]
-            self.ne_temp_planning_brd_piece[t] = ne_temp_planning_brd_piece[0]
+            self.ne_a_planning_brd_piece[:,t:] = ne_a_planning_brd_piece
+            self.ne_sum_a_planning_brd_piece[t:] = ne_sum_a_planning_brd_piece
+            self.ne_u_planning_brd_piece[:,t:] = ne_u_planning_brd_piece
+            self.ne_sum_u_planning_brd_piece[t:] = ne_sum_u_planning_brd_piece
+            self.ne_temp_planning_brd_piece[t:] = ne_temp_planning_brd_piece
 
             self.scm_game.five_years_cycle_deep(ne_sum_a_planning_brd_piece[0])
-            # carbon_state = self.scm_game.carbon_state
-            # temperature_state = self.scm_game.temperature_state
-
-    def sum_utilities_planning(self, t_max, actions : np.ndarray, **kwargs) -> float:
-        actions = np.reshape(actions,(self.N, t_max),'F')
-        sum_actions = np.sum(actions, axis =0)
-        temperature_AT = self.scm_game.evaluate_trajectory(sum_actions, **kwargs)[-1]
-        sum_utilities = 0
-        for idx, player in enumerate(self.list_players) :
-            
-            sum_utilities += np.sum(player.utility_sum_over_t(actions[idx], sum_actions - actions[idx], temp = temperature_AT, **kwargs ))
 
 
-        return sum_utilities
+    
+
+
 
     def jacobian_sum_benefice(self, a : np.ndarray):
-        t_max = a.shape[1]
-        diag = [derivative(player.benefit_function ,a[idx,t], order=5) for t in range(t_max) for idx, player in enumerate(self.list_players)]
+        tmax = a.shape[1]
+        diag = [derivative(partial(player.benefit, t = t), a[idx,t],  order=7) for t in range(tmax) for idx, player in enumerate(self.list_players)]
         return np.array(diag)
 
     def jacobian_sum_damage_planning(self, a : np.ndarray, **kwargs):
-        t_max = a.shape[1]
+        tmax = a.shape[1]
 
         sum_a = np.sum(a, axis=0)
 
         CC = self.scm_game.carbon_model
         TD = self.scm_game.temperature_model
 
-        carbon_AT, forcing, temperature_AT = self.scm_game.evaluate_trajectory(sum_a, tmax=t_max, **kwargs)
+        carbon_AT, forcing, temperature_AT = self.scm_game.evaluate_trajectory(sum_a, tmax=tmax, **kwargs)
 
-        jac_carbon_AT = jacobian_linear_model(CC.Ac, CC.bc, CC.dc, t_max)
+        jac_carbon_AT = jacobian_linear_model(CC.Ac, CC.bc, CC.dc, tmax)
         jac_forcing = jacobian_forcing(carbon_AT)
-        jac_temperature_AT = jacobian_linear_model(TD.At, TD.bt, TD.dt, t_max)
-        jac_damage = sum(self.deltas) * jacobian_damage_function(temperature_AT, self.damage_function)
-        jac_sum = jacobian_sum(t_max, self.N)
-        
-        jacobian =  jac_damage @ jac_temperature_AT @ jac_forcing @ jac_carbon_AT @ jac_sum
+        jac_temperature_AT = jacobian_linear_model(TD.At, TD.bt, TD.dt, tmax)
+        jac_damage = sum(self.deltas) * jacobian_damage_function(temperature_AT, self.list_damage_function[0])
+        jac_sum = jacobian_sum(tmax, self.N)
+        print(jac_damage.shape, jac_temperature_AT.shape, jac_forcing.shape, jac_carbon_AT.shape, jac_sum.shape, )
+        # pas le bon jacobien car il y a un problem sur les fonction dammages
+        jacobian =  jac_damage @ jac_temperature_AT @ jac_forcing @ jac_carbon_AT @ jac_sum 
 
         return jacobian
 
-    def jacobian_sum_utilities_planning(self, t_max,  a : np.ndarray, **kwargs):
-        a = np.reshape(a,(self.N, t_max),'F') # the reshape function is weird it's important
+    def jacobian_sum_utilities_planning(self, a : np.ndarray, **kwargs):
+        tmax = kwargs.get('tmax', self.T)
+
+        a = np.reshape(a,(self.N, tmax),'F') # the reshape function is weird it's important
         return self.jacobian_sum_benefice(a) - self.jacobian_sum_damage_planning(a, **kwargs)
 
-    def planning_social_optimum(self, t_max, **kwargs):
-        def sum_utilities_planning_wrapped(a):
-            return - self.sum_utilities_planning(t_max, a, **kwargs)
+
+    def prod_utilities(self, actions : np.ndarray, profile : np.ndarray, **kwargs):
+        tmax = kwargs.get('tmax', self.T)
+        actions = np.reshape(actions,(self.N, tmax),'F')
+        sum_actions = np.sum(actions, axis =0)
 
 
-        def jacobian_sum_utilities_planning_wrapped(a):
-            return - self.jacobian_sum_utilities_planning(t_max, a, **kwargs)
+        temperature_AT = self.scm_game.evaluate_trajectory(sum_actions, **kwargs)[-1]
+        prod_utilities = 1
+        for idx, player in enumerate(self.list_players) :
+            prod_utilities *= player.utility_sum_over_t(actions[idx], sum_actions - actions[idx], temp = temperature_AT, **kwargs ) - profile[idx] 
+        return prod_utilities
+    
+    def utilities_minus_profile(self, actions : np.ndarray, profile : np.ndarray,  **kwargs):
+        tmax = kwargs.get('tmax', self.T)
+        actions = np.reshape(actions,(self.N, tmax),'F')
+        sum_actions = np.sum(actions, axis =0)
+        utilities = np.zeros((self.N))
 
-        action_space = self.get_action_space()
-        bounds = np.tile(action_space, (t_max,1))
+        temperature_AT = self.scm_game.evaluate_trajectory(sum_actions, **kwargs)[-1]
+        for idx, player in enumerate(self.list_players) :
+            utilities[idx] = player.utility_sum_over_t(actions[idx], sum_actions - actions[idx], temp = temperature_AT, **kwargs ) - profile[idx]
+        return utilities
 
-        x0 = kwargs.get('x0', bounds[:,1]/2)
-        if x0.shape != bounds[:,1].shape:
-            x0= x0.flatten()
-        bounds = Bounds(lb=bounds[:,0], ub=bounds[:,1], keep_feasible=True)
+    def nash_barganing_solution(self, utility_profile : np.ndarray, **kwargs):
+        t0 = kwargs.get('t0', 0)
+        tmax = kwargs.get('tmax', self.T) + t0
+        def prod_utilities(a):
+            return - self.prod_utilities(a, utility_profile, **kwargs)
+        def utilities_minus_profile(a):
+            return  self.utilities_minus_profile(a, utility_profile, **kwargs)
+        action_space = self.get_action_space(**kwargs)
+        bounds = action_space
+        x0 = kwargs.get('x0', action_space[:,t0:tmax,1]/2)
+        if x0.shape != bounds[:,t0:tmax,1].flatten().shape:
+            x0= x0.flatten('F')
+        bounds = Bounds(lb=bounds[:,t0:tmax,0].flatten('F'), ub=bounds[:,t0:tmax,1].flatten('F'))
+        constraint = NonlinearConstraint(utilities_minus_profile, ub = np.ones_like(utility_profile) * 1e9, lb = - np.zeros_like(utility_profile) * 1e-9)
+        res = minimize(prod_utilities ,x0=x0, constraints=constraint,  tol=1e-6 , bounds=bounds, options={'maxiter': 1000, 'disp': 1})
+        return np.reshape(res.x  ,(self.N, tmax-t0),'F'), res
 
-        res = minimize(sum_utilities_planning_wrapped ,x0=x0 , bounds=bounds, jac = jacobian_sum_utilities_planning_wrapped, tol = 1e-6, options={'maxiter': 1000, 'disp': 0})
-        print(np.reshape(res.x  ,(self.N, t_max),'F'))
-        res = minimize(sum_utilities_planning_wrapped ,x0=x0 , bounds=bounds, options={'maxiter': 1000, 'disp': 0})
-        print(np.reshape(res.x  ,(self.N, t_max),'F'))
-        print(res.success)
-        return np.reshape(res.x  ,(self.N, t_max),'F')
 
-    def planning_SO(self, t_max = None, **kwargs):
-        if t_max is None:
-            t_max = self.T  
-        self.so_a_planning, self.so_sum_a_planning, self.so_u_planning, self.so_sum_u_planning, self.so_temp_planning = self.planning_game(self.planning_social_optimum, t_max=t_max,
-        temperature_target = self.temperature_target, final_multiplier = self.final_multiplier, **kwargs)
 
-    def planning_SO_by_piece(self, t_max, **kwargs):
-        self.so_a_planning_piece        = np.zeros((self.N,self.T))
-        self.so_sum_a_planning_piece    = np.zeros(self.T)
-        self.so_u_planning_piece        = np.zeros((self.N, self.T))
-        self.so_sum_u_planning_piece    = np.zeros(self.T)
-        self.so_temp_planning_piece     = np.zeros(self.T)
+    def potential_planning(self, actions : np.ndarray, **kwargs):
 
-        # carbon_state = self.scm_game.carbon_state
-        # temperature_state = self.scm_game.temperature_state
+        tmax = kwargs.get('tmax', self.T)
+        if not actions.shape == (self.N, tmax):
+            actions = np.reshape(actions,(self.N, tmax),'F')
+        sum_actions = np.sum(actions, axis =0)
         
-        for t in range(self.T):
-            # print(carbon_state)
-            # print(temperature_state)
+        potential = -self.list_players[0].damages(sum_actions, **kwargs) / self.list_players[0].delta
+        for idx, player in enumerate(self.list_players) :
+            potential += player.benefit(actions[idx], **kwargs) /player.delta 
+        
+        return potential
+    
+    def gradient_over_potential(self, **kwargs):
 
-            a, sum_a, u, sum_u, temp = self.planning_game(
-            self.planning_social_optimum, t0= t, t_max=min(t_max, self.T -t), temperature_target = self.temperature_target, final_multiplier = self.final_multiplier,
-            **kwargs)
+        t0 = kwargs.get('t0', 0)
+        tmax = kwargs.get('tmax', self.T) + t0
+        action_space = self.get_action_space(**kwargs)
+        def potential_planning_wrapped(a):
+            return - self.potential_planning(a, **kwargs)
 
-            self.so_a_planning_piece[:,t] = a[:,0]
-            self.so_sum_a_planning_piece[t] = sum_a[0]
-            self.so_u_planning_piece[:,t] = u[:,0]
-            self.so_sum_u_planning_piece[t] = sum_u[0]
-            self.so_temp_planning_piece[t] = temp[0]
+        bounds = action_space
 
-            self.scm_game.five_years_cycle_deep(sum_a[0])
-            # carbon_state = self.scm_game.carbon_state
-            # temperature_state = self.scm_game.temperature_state
+        x0 = kwargs.get('x0', action_space[:,t0:tmax,1]/2)
+        if x0.shape != bounds[:,t0:tmax,1].flatten().shape:
+            x0= x0.flatten('F')
+        bounds = Bounds(lb=bounds[:,t0:tmax,0].flatten('F'), ub=bounds[:,t0:tmax,1].flatten('F'), keep_feasible=True)
+        res = minimize(potential_planning_wrapped ,x0=x0 , method='SLSQP', bounds=bounds, tol = 1e-6, options={'maxiter': 1000, 'disp': 0})
+        return np.reshape(res.x  ,(self.N, tmax),'F')   
 
 
-    def planning_game_with_strategies_profile(self, array_action : np.ndarray, sum_action: np.ndarray, **kwargs) -> None:
-        utilities = np.zeros(self.N)
 
-        temperature_AT = self.scm_game.evaluate_trajectory(sum_action, **kwargs)[-1]
+    # def planning_social_optimum(self, **kwargs):
+    #     t0 = kwargs.get('t0', 0)
+    #     tmax = kwargs.get('tmax', self.T) + t0
+    #     def sum_utilities_planning_wrapped(a):
+    #         return - self.sum_utilities_planning(a, **kwargs)
+    #     action_space = self.get_action_space(**kwargs)
+    #     bounds = action_space
+    #     x0 = kwargs.get('x0', action_space[:,t0:tmax,1]/2)
+    #     if x0.shape != bounds[:,t0:tmax,1].flatten().shape:
+    #         x0= x0.flatten('F')
+    #     bounds = Bounds(lb=bounds[:,t0:tmax,0].flatten('F'), ub=bounds[:,t0:tmax,1].flatten('F'), keep_feasible=True)
+    #     start_time = time.time()
 
-        for indice in range(self.N):
-            player = self.list_players[indice]
-            utilities[indice] = player.utility_sum_over_t(array_action[indice],
-                                                                     sum_action - array_action[indice])
+    #     res = minimize(sum_utilities_planning_wrapped ,x0=x0, method='SLSQP',  tol=1e-6 , bounds=bounds, options={'maxiter': 1000, 'disp': 0})
+    #     end_time = time.time()
+    #     print('SO SLSQP', end_time - start_time)
+    #     start_time1 = time.time()
+
+    #     res = minimize(sum_utilities_planning_wrapped, x0 = x0, bounds=bounds,  method='L-BFGS-B', tol=1e-6, options={'maxiter': 10000, 'disp': 0}) #, constraints=constraint)#jac=jac,, constraints=constraint)
+    #     # res = minimize(response, x0 = x0, bounds=bounds,  method='SLSQP', tol=1e-6, options={'maxiter': 10000, 'disp': 0}) #, constraints=constraint)#jac=jac,, constraints=constraint)
+    #     # res = minimize(response, x0 = x0, bounds=bounds,  method='SLSQP', tol=1e-6, options={'maxiter': 10000, 'disp': 0}) #, constraints=constraint)#jac=jac,, constraints=constraint)
+    #     end_time1 = time.time()
+    #     print('SO L-BFGS-B:', end_time1 - start_time1)
+    #     return np.reshape(res.x  ,(self.N, tmax-t0),'F')
+
+    # def jacobian_damage_planning_all_players(self, a : np.ndarray, **kwargs):
+    #     tmax = a.shape[1]
+
+    #     sum_a = np.sum(a, axis=0)
+
+    #     CC = self.scm_game.carbon_model
+    #     TD = self.scm_game.temperature_model
+
+    #     carbon_AT, forcing, temperature_AT = self.scm_game.evaluate_trajectory(sum_a, tmax=tmax, **kwargs)
+
+    #     jac_carbon_AT = jacobian_linear_model(CC.Ac, CC.bc, CC.dc, tmax)
+    #     jac_forcing = jacobian_forcing(carbon_AT)
+    #     jac_temperature_AT = jacobian_linear_model(TD.At, TD.bt, TD.dt, tmax)
+    #     jac_damage = jacobian_damage_function(temperature_AT, self.damage_function)
+    #     jac_sum = jacobian_sum(tmax, self.N)
+        
+    #     jacobian =  jac_damage @ jac_temperature_AT @ jac_forcing @ jac_carbon_AT @ jac_sum
+
+    #     return jacobian
+
+
+    # def jacobian_benefice(self, a : np.ndarray):
+    #     tmax = a.shape[1]
+    #     diag = [1/player.delta *  derivative(player.benefit_function ,a[idx,t]) for t in range(tmax) for idx, player in enumerate(self.list_players)]
+    #     return np.array(diag).T
+
+    # def jacobian_potential_planning(self, tmax,  a : np.ndarray, **kwargs):
+    #     a = np.reshape(a,(self.N, tmax),'F') # the reshape function is weird it's important
+    #     return self.jacobian_benefice(a) - self.jacobian_damage_planning_all_players(a, **kwargs)
+
+    # def gradient_over_potential(self, tmax, **kwargs):
+    #     def potential_planning_wrapped(a):
+    #         return - self.potential_planning(tmax, a, **kwargs)
+    #     def jacobian_potential_planning_wrapped(a):
+    #         return - self.jacobian_potential_planning(tmax, a, **kwargs)
+
+    #     action_space = self.get_action_space()
+    #     bounds = bounds = action_space[:,1,:]
+
+    #     x0 = kwargs.get('x0', bounds[:,1])
+    #     if x0.shape != bounds[:,1].shape:
+    #         x0= x0.flatten()
+    #         print('pass')
+    #     bounds = Bounds(lb=bounds[:,0], ub=bounds[:,1], keep_feasible=True)
+    #     # print(potential_planning_wrapped(x0).shape)
+    #     res = minimize(potential_planning_wrapped ,x0=x0 , bounds=bounds, jac = jacobian_potential_planning_wrapped, tol = 1e-6, options={'maxiter': 1000, 'disp': 0})
+    #     return np.reshape(res.x  ,(self.N, tmax),'F')   
+
+    # def planning_SO_by_piece_(self, t_piece, **kwargs):
+    #     self.so_a_planning_piece        = np.zeros((self.N,self.T))
+    #     self.so_sum_a_planning_piece    = np.zeros(self.T)
+    #     self.so_u_planning_piece        = np.zeros((self.N, self.T))
+    #     self.so_sum_u_planning_piece    = np.zeros(self.T)
+    #     self.so_temp_planning_piece     = np.zeros(self.T)
+
+    #     # carbon_state = self.scm_game.carbon_state
+    #     # temperature_state = self.scm_game.temperature_state
+        
+    #     for t in range(self.T):
+    #         # print(carbon_state)
+    #         # print(temperature_state)
+    #         tmax=min(t_piece, self.T -t)
+
+    #         a, sum_a, u, sum_u, temp = self.planning_game(
+    #         self.planning_social_optimum, t0= t, tmax=tmax, temperature_target = self.temperature_target, final_multiplier = self.final_multiplier,
+    #         **kwargs)
+
+    #         self.so_a_planning_piece[:,t] = a[:,0]
+    #         self.so_sum_a_planning_piece[t] = sum_a[0]
+    #         self.so_u_planning_piece[:,t] = u[:,0]
+    #         self.so_sum_u_planning_piece[t] = sum_u[0]
+    #         self.so_temp_planning_piece[t] = temp[0]
+
+    #         self.scm_game.five_years_cycle_deep(sum_a[0])
+    #         # carbon_state = self.scm_game.carbon_state
+    #         # temperature_state = self.scm_game.temperature_state
+
+
+
+
+    # def planning_game_with_strategies_profile(self, array_action : np.ndarray, sum_action: np.ndarray, **kwargs) -> None:
+    #     utilities = np.zeros(self.N,)
+
+    #     for indice in range(self.N):
+    #         player = self.list_players[indice]
+    #         utilities[indice] = player.utility_sum_over_t(array_action[indice],
+    #                                                                  sum_action - array_action[indice], **kwargs)
                                                                      
 
-        return utilities
+    #     return utilities
     
-    def planning_game_pareto_front(self, action_1 : np.ndarray) -> None:
-        t_max = action_1.shape[0]
+    # def planning_game_pareto_front(self, action_1 : np.ndarray) -> None:
+        # tmax = action_1.shape[0]
 
-        def sum_utilities_planning(t_max, actions : np.ndarray, **kwargs) -> float:
-            sum_actions = actions + action_1
-            temperature_AT = self.scm_game.evaluate_trajectory(sum_actions, **kwargs)[-1]
-            sum_utilities = 0
-            player = self.list_players[1]
-            sum_utilities += np.sum(player.utility_sum_over_t(actions, action_1 , temp = temperature_AT, **kwargs ))
-            player = self.list_players[0]
+        # def sum_utilities_planning(tmax, actions : np.ndarray, **kwargs) -> float:
+        #     sum_actions = actions + action_1
+        #     temperature_AT = self.scm_game.evaluate_trajectory(sum_actions, **kwargs)[-1]
+        #     sum_utilities = 0
+        #     player = self.list_players[1]
+        #     sum_utilities += np.sum(player.utility_sum_over_t(actions, action_1 , temp = temperature_AT, **kwargs ))
+        #     player = self.list_players[0]
 
-            sum_utilities += np.sum(player.utility_sum_over_t(action_1, actions , temp = temperature_AT, **kwargs ))
-
-
-            return sum_utilities
-
-        def sum_utilities_planning_wrapped(a):
-            return - sum_utilities_planning(t_max, a)
+        #     sum_utilities += np.sum(player.utility_sum_over_t(action_1, actions , temp = temperature_AT, **kwargs ))
 
 
-        action_space = self.get_action_space()
-        bounds = np.tile(action_space[1], (t_max,1))
-        x0 = bounds[:,1]
-        bounds = Bounds(lb=bounds[:,0], ub=bounds[:,1], keep_feasible=True)
+        #     return sum_utilities
 
-        # res = minimize(sum_utilities_planning_wrapped ,x0=x0 , bounds=bounds, jac = jacobian_sum_utilities_planning_wrapped, tol = 1e-6, options={'maxiter': 1000, 'disp': 0})
-        res = minimize(sum_utilities_planning_wrapped ,x0=x0 , bounds=bounds, options={'maxiter': 1000, 'disp': 0})
-        action_2 = res.x 
+        # def sum_utilities_planning_wrapped(a):
+        #     return - sum_utilities_planning(tmax, a)
+
+
+        # action_space = self.get_action_space()
+        # bounds = np.tile(action_space[1], (tmax,1))
+        # x0 = bounds[:,1]
+        # bounds = Bounds(lb=bounds[:,0], ub=bounds[:,1], keep_feasible=True)
+
+        # # res = minimize(sum_utilities_planning_wrapped ,x0=x0 , bounds=bounds, jac = jacobian_sum_utilities_planning_wrapped, tol = 1e-6, options={'maxiter': 1000, 'disp': 0})
+        # res = minimize(sum_utilities_planning_wrapped ,x0=x0 , bounds=bounds, options={'maxiter': 1000, 'disp': 0})
+        # action_2 = res.x 
     
-        utilities = np.zeros(self.N)
+        # utilities = np.zeros(self.N)
 
-        # temp = self.scm_game.five_years_atmospheric_temp(sum_action)
-        player = self.list_players[1]
-        utilities[1] = player.utility_sum_over_t(action_2, action_1)
-        player = self.list_players[0]
-        utilities[0] = player.utility_sum_over_t(action_1,action_2)                                                           
+        # # temp = self.scm_game.five_years_atmospheric_temp(sum_action)
+        # player = self.list_players[1]
+        # utilities[1] = player.utility_sum_over_t(action_2, action_1)
+        # player = self.list_players[0]
+        # utilities[0] = player.utility_sum_over_t(action_1,action_2)                                                           
 
-        return utilities
+        # return utilities

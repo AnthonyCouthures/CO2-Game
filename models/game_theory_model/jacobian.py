@@ -16,6 +16,10 @@ def derivative_damage(x, damage_func):
 def jacobian_damage_function(x, damage_func):
     return np.array(derivative_damage(x, damage_func))
 
+#idée de solution 
+def jacobian_damage_function_(x, list_damage_func):
+    return np.array([derivative_damage(x, damage_func)  for damage_func in list_damage_func]).flatten('F')
+
 def jacobian_sum(t_periode, n_player):
         
     matrice = np.zeros((t_periode, n_player * t_periode))

@@ -252,6 +252,10 @@ class Simple_Climate_Model :
         tuple
             A tuple containing the trajectories (atmospheric_carbon, forcing, atmospheric_temp).
         """
+        if not isinstance(emissions, np.ndarray):
+            if not isinstance(emissions, list):
+                emissions = [emissions]
+            emissions = np.array(emissions)
 
         carbon_state = kwargs.get('carbon_state', self.carbon_state)
         temperature_state = kwargs.get('temperature_state', self.temperature_state)
