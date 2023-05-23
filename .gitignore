@@ -44,3 +44,6 @@ data/CMIP6.ipynb
 data/SSP_CMIP6_201811.csv
 test/joblib/
 **/__pycache__/
+latex.py
+test.ipynb
+figure.py
