@@ -1,0 +1,24 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: ' CO2-Game '
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Anthony
+    family-names: Couthures
+    email: anthony.couthures@gmail.com
+    affiliation: CRAN
+    orcid: 'https://orcid.org/0009-0008-6102-9356'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.7775252
+repository-code: 'https://github.com/AnthonyCouthures/CO2-Game'
+keywords:
+  - CO2
+  - Climate change
+  - Game theory
+license: GPL-3.0
