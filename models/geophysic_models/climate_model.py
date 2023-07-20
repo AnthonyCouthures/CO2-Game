@@ -231,6 +231,21 @@ class Simple_Climate_Model :
         return atmospheric_carbon
 
     def evalutate_linear_model(self, x, A, b, d, initial_state):
+        # Initialize the state vector
+        state = np.empty((len(x),len(b)))
+        state[0] = A @ initial_state + d * x[0]
+
+        # Calculate the rest of the states
+        for i in range(1, len(x)):
+            state[i] = A @ state[i-1] + d * x[i]
+
+        # Compute the output vector
+        vecteur = b @ state.T
+
+        return vecteur
+
+    
+    def evalutate_linear_model_old(self, x, A, b, d, initial_state):
         vecteur = []
         state = initial_state
         for x_ in x:

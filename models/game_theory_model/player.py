@@ -126,7 +126,12 @@ class player_class:
         temperature_target = kwargs.pop('temperature_target', None)
         final_multiplier = kwargs.pop('final_multiplier',  FINAL_MULTIPLIER)
 
-        atmospheric_temperatures = kwargs.get('temp', self.scm.evaluate_trajectory(emissions, **kwargs)[-1])  # C'est important car sinon on a le joueur qui evalue la trajectoire avec un SCM déjà modifier
+        atmospheric_temperatures = kwargs.get('temp', None ) 
+        if atmospheric_temperatures is None:
+            atmospheric_temperatures = self.scm.evaluate_trajectory(emissions, **kwargs)[-1]
+
+
+            atmospheric_temperatures = self.scm.evaluate_trajectory(emissions, **kwargs)[-1]  # C'est important car sinon on a le joueur qui evalue la trajectoire avec un SCM déjà modifier
         if self.damage_in_percentage:
             GDP_max = kwargs.pop('GDP_max',self.GDP_max)
             damages = self.delta  * GDP_max/100 * self.damage_function(atmospheric_temperatures)**self.alpha

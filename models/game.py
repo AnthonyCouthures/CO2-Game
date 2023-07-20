@@ -189,6 +189,22 @@ class Game:
         for idx, player in enumerate(self.list_players):
             action_space[idx, t0:tmax] = deepcopy(player.action_set[t0:tmax])
         return action_space
+    
+    def get_action_space_specific(self, indices, **kwargs) -> np.ndarray :
+        """Function which extract the action sets of the players of the game at current state.
+
+        Returns
+        -------
+        np.ndarray
+            Array describing the action set :math:`\mathcal{A}` of the game. 
+        """
+        t0 = kwargs.get('t0', 0)
+        tmax = kwargs.get('tmax', self.T) + t0
+        action_space = np.zeros((len(indices), tmax, 2))
+        for idx in indices:
+            player = self.list_players[idx]
+            action_space[idx, t0:tmax] = deepcopy(player.action_set[t0:tmax])
+        return action_space
 
     def get_GDP_max(self) -> np.ndarray :
         """Function which extract the maximum GDP of the players of the game at current state.
@@ -416,12 +432,11 @@ class Game:
         # Creation of the futures return.
 
         a_p = np.zeros((self.N, tmax)) 
-        sum_a_p = np.zeros(tmax)
         u_p = np.zeros((self.N, tmax))
         # Reset the game: SCM, players' utility and action sets.
         ## Initialization of the planning game.
         # Players get the SCM values from the SCM of the planning game. 
-        self.update_players_scm()
+        # self.update_players_scm()
         ## Realization of the game.
         # Players choose their actions following the given rule.
         a_p = rule(**kwargs)
@@ -535,6 +550,7 @@ class Game:
         temp_planning_piece     = np.zeros(self.T)
 
         for t in tqdm(range(0, self.T, t_piece), desc=desc):
+            
             t1=min(t_piece, self.T -t)
             tmax = t_piece
             a, sum_a, u, sum_u, temp = self.planning_game(
@@ -599,7 +615,6 @@ class Game:
         
         bounds = Bounds(lb=bounds[:, t0:tmax, 0].flatten('F'), ub=bounds[:, t0:tmax, 1].flatten('F'), keep_feasible=True)
         nlc = NonlinearConstraint(constraint_func, -np.inf, constraint_value)
-        constraint = {'type': 'ineq', 'fun': constraint_func}
         
         res = minimize(sum_utilities_planning_wrapped, x0=x0, bounds=bounds, method='SLSQP',
                     tol=1e-6, options={'maxiter': 10000, 'disp': 0}, constraints=[nlc])
@@ -609,6 +624,155 @@ class Game:
         
         return np.reshape(res.x, (self.N, tmax - t0), 'F')
     
+
+    def planning_social_optimum_with_constraint_temperature(self, **kwargs):
+            t0 = kwargs.get('t0', 0)
+            tmax = kwargs.get('tmax', self.T) + t0
+            constraint_value = kwargs.get('constraint_value', 0)  # Specify the maximum sum of utilities for the player
+            def sum_utilities_planning_wrapped(a):
+                return - self.sum_utilities_planning(a, **kwargs)
+            
+            def constraint_func(a):
+                a = np.reshape(a, (self.N, tmax),'F')
+                sum_actions = np.sum(a, axis=0)
+                temperature_AT = self.scm_game.evaluate_trajectory(sum_actions, **kwargs)[-1][-1]
+
+                return temperature_AT - constraint_value
+            
+            action_space = self.get_action_space(**kwargs)
+            bounds = action_space
+            x0 = kwargs.get('x0', action_space[:, t0:tmax, 1] / 2)
+            
+            if x0.shape != bounds[:, t0:tmax, 1].flatten().shape:
+                x0 = x0.flatten('F')
+            
+            bounds = Bounds(lb=bounds[:, t0:tmax, 0].flatten('F'), ub=bounds[:, t0:tmax, 1].flatten('F'), keep_feasible=True)
+            nlc = {'type' : 'eq', 'fun' : constraint_func}
+            
+            res = minimize(sum_utilities_planning_wrapped, x0=x0, bounds=bounds, method='SLSQP',
+                        tol=1e-6, options={'maxiter': 10000, 'disp': 0}, constraints=[nlc])
+            
+            if not res.success:
+                print(res)
+            
+            return np.reshape(res.x, (self.N, tmax - t0), 'F')
+        
+    # def sum_utilities_planning_weighted(self, actions : np.ndarray, weights :np.ndarray,**kwargs) -> float:
+    #     tmax = kwargs.get('tmax', self.T)
+    #     actions = np.reshape(actions,(self.N, tmax),'F')
+    #     sum_actions = np.sum(actions, axis =0)
+        
+    #     temperature_AT = self.scm_game.evaluate_trajectory(sum_actions, **kwargs)[-1]
+    #     sum_utilities = 0
+    #     for idx, player in enumerate(self.list_players) :
+    #         sum_utilities += weights[idx] * player.utility_sum_over_t(actions[idx], sum_actions - actions[idx], temp = temperature_AT, **kwargs )
+    #     return sum_utilities
+
+    
+    # def planning_social_optimum_weighted(self, weights : np.ndarray, **kwargs):
+    #     t0 = kwargs.get('t0', 0)
+    #     tmax = kwargs.get('tmax', self.T) + t0
+    #     def sum_utilities_planning_wrapped(a):
+    #         return - self.sum_utilities_planning_weighted(a, weights, **kwargs)
+        
+    #     action_space = self.get_action_space(**kwargs)
+    #     bounds = action_space
+    #     x0 = kwargs.get('x0', action_space[:, t0:tmax, 1] / 2)
+        
+    #     if x0.shape != bounds[:, t0:tmax, 1].flatten().shape:
+    #         x0 = x0.flatten('F')
+        
+    #     bounds = Bounds(lb=bounds[:, t0:tmax, 0].flatten('F'), ub=bounds[:, t0:tmax, 1].flatten('F'), keep_feasible=True)
+
+    #     res = minimize(sum_utilities_planning_wrapped, x0=x0, bounds=bounds, method='SLSQP',
+    #                 tol=1e-6, options={'maxiter': 10000, 'disp': 0})
+        
+    #     if not res.success:
+    #         print(res)
+        
+    #     return np.reshape(res.x, (self.N, tmax - t0), 'F')
+    
+    def pareto_front(self, nb_points=50, value_constraints = None, **kwargs):
+        if self.N >2:
+            return 'Err: Number of player superior to 2.'
+        
+        a_1, a_2 = self.get_action_space(**kwargs)
+        if value_constraints is None :
+            min1max2 = np.stack((a_1[..., 0], a_2[...,1] ))
+            max1min2 = np.stack((a_1[..., 1], a_2[...,0] ))
+            val1val2 = self.game_with_strategies_profile(min1max2, np.sum(min1max2, axis=0))[0]
+            val2val1 = self.game_with_strategies_profile(max1min2, np.sum(max1min2, axis=0))[0]
+            vals = np.stack([val1val2, val2val1])
+        else:
+            vals = value_constraints
+        val = np.stack([np.linspace(*vals[:,0], num=nb_points),np.linspace(*vals[:,1],  num=nb_points)])
+
+        actions = []
+        temp = []
+        utilities = []
+        for idx_ in range(self.N):
+            for val_ in tqdm(val[idx_], desc='Player {}'.format(idx_)):
+                a_p = self.planning_social_optimum_with_constraint(  constraint_player=idx_, constraint_value=val_, **kwargs)
+                actions.append(a_p)
+                sum_a_p = np.sum(a_p, axis=0)
+
+                ## Climate modelization 
+                # Players' emissions are injected in the SCM.
+                temperature_AT =  self.scm_game.evaluate_trajectory(sum_a_p, **kwargs)[-1]
+                temp.append(temperature_AT)
+
+                # Calculus of the utilities values for all games.
+                u_p = np.zeros(self.N)
+                for idx, player in enumerate(self.list_players):
+                    u_p[idx] = player.utility_sum_over_t(a_p[idx], sum_a_p - a_p[idx], temp = temperature_AT, **kwargs)
+                # Sum of the utilities values for all games.
+                utilities.append(u_p)
+        actions = np.stack(actions, axis=0)
+        utilities = np.array(utilities)
+        temp = np.array(temp)
+        return actions, utilities, temp
+
+    def pareto_front_multiple(self, indices : tuple, nb_points=50,**kwargs):
+        if len(indices) > 2:
+            return 'Err: Number of player superior to 2.'
+        i1, i2 = indices
+        t0 = kwargs.get('t0', 0)
+        tmax = kwargs.get('tmax', self.T) + t0
+        a_1, a_2 = self.get_action_space_specific(self, indices, **kwargs) 
+        min1max2 = np.stack((a_1[..., 0], a_2[...,1] ))
+        max1min2 = np.stack((a_1[..., 1], a_2[...,0] ))
+        val1val2 = self.game_with_strategies_profile(min1max2, np.sum(min1max2, axis=0))[0]
+        val2val1 = self.game_with_strategies_profile(max1min2, np.sum(max1min2, axis=0))[0]
+        vals = np.stack([val1val2, val2val1])
+        val = np.stack([np.linspace(*vals[:,0], num=nb_points),np.linspace(*vals[:,1],  num=nb_points)])
+        actions = []
+        temp = []
+        utilities = []
+        for idx_ in range(len(indices)):
+            # print(val)
+            # print(idx_)
+            # print(val[idx_])
+            for val_ in tqdm(val[idx_], desc='Player {}'.format(idx_)):
+                a_p = self.planning_social_optimum_with_constraint(  constraint_player=idx_, constraint_value=val_, **kwargs)
+                actions.append(a_p)
+                sum_a_p = np.sum(a_p, axis=0)
+
+                ## Climate modelization 
+                # Players' emissions are injected in the SCM.
+                temperature_AT =  self.scm_game.evaluate_trajectory(sum_a_p, **kwargs)[-1]
+                temp.append(temperature_AT)
+
+                # Calculus of the utilities values for all games.
+                u_p = np.zeros(self.N)
+                for idx, player in enumerate(self.list_players):
+                    u_p[idx] = player.utility_sum_over_t(a_p[idx], sum_a_p - a_p[idx], temp = temperature_AT, **kwargs)
+                # Sum of the utilities values for all games.
+                utilities.append(u_p)
+        actions = np.stack(actions, axis=0)
+        utilities = np.array(utilities)
+        temp = np.array(temp)
+        return actions, utilities, temp
+
     def planning_inverse_social_optimum_with_constraint(self, **kwargs):
         t0 = kwargs.get('t0', 0)
         tmax = kwargs.get('tmax', self.T) + t0

@@ -275,7 +275,7 @@ class Temp_Discret_Geoffroy(Linear_Temperature_Dynamic) :
     r"Parameter :math:`\gamma` of the model, by default 0.73"
     
     At_0 : np.ndarray = np.array([[-(lam + gam) / C, gam / C  ],
-                                [gam / C0        , gam / C0]]) + np.eye(2)
+                                [gam / C0        , - gam / C0]]) + np.eye(2)
     r"Transition matrix between the differents boxes"
     
     dt_0 : np.ndarray = np.array([(3.1 / 3.05) / C,   0]) 
