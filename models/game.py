@@ -13,7 +13,8 @@ from parameters import *
 from functools import partial
 from tqdm import tqdm
 from collections.abc import Callable
-import time 
+from tabulate import tabulate
+import time
 
 
 
@@ -57,17 +58,55 @@ def create_players(list_of_names : list[str] = NAMES,
         A list of players.
     """
 
-    return [player_class(name = list_of_names[i],
-                          action_set = list_action_sets[i],
-                          benefit_function = list_benefit_functions[i],
-                          GDP_initial = list_GDP_initial[i],
+    return [player_class(name = deepcopy(list_of_names[i]),
+                          action_set = deepcopy(list_action_sets[i]),
+                          benefit_function = deepcopy(list_benefit_functions[i]),
+                          GDP_initial = deepcopy(list_GDP_initial[i]),
                           damage_function = damage_function,
-                          impact_factor_of_temperature = list_deltas[i],
-                          increase_co2 = list_coef_increase_co2[i],
-                          percentage_green = list_percentage_green[i],
+                          impact_factor_of_temperature = deepcopy(list_deltas[i]),
+                          increase_co2 = deepcopy(list_coef_increase_co2[i]),
+                          percentage_green = deepcopy(list_percentage_green[i]),
                           alpha = alpha,
                           damage_in_percentage = damage_in_percentage, 
                           discount = discount) for i in range(len(list_of_names))]
+
+
+
+class GameResults:
+    def __init__(self):
+        self.data = {
+            'action': {
+                'ne': {'oneshot': [], 'planning': {}, 'receding': {}},
+                'so': {'oneshot': [], 'planning': {}, 'receding': {}}
+            },
+            'sum_action': {
+                'ne': {'oneshot': [], 'planning': {}, 'receding': {}},
+                'so': {'oneshot': [], 'planning': {}, 'receding': {}}
+            },
+            'utility': {
+                'ne': {'oneshot': [], 'planning': {}, 'receding': {}},
+                'so': {'oneshot': [], 'planning': {}, 'receding': {}}
+            },
+            'sum_utility': {
+                'ne': {'oneshot': [], 'planning': {}, 'receding': {}},
+                'so': {'oneshot': [], 'planning': {}, 'receding': {}}
+            },
+            'temp': {
+                'ne': {'oneshot': [], 'planning': {}, 'receding': {}},
+                'so': {'oneshot': [], 'planning': {}, 'receding': {}}
+            }
+        }
+
+    def store(self, category, case, subcase, value, time_duration=None):
+        if time_duration and (subcase == 'planning' or subcase == 'receding'):
+            # If time_duration doesn't exist yet, initialize it
+            if time_duration not in self.data[category][case][subcase]:
+                self.data[category][case][subcase][time_duration] = []
+            self.data[category][case][subcase][time_duration].append(value)
+        else:
+            self.data[category][case][subcase].append(value)
+
+
 
 class Game:
     """Test
@@ -190,7 +229,7 @@ class Game:
             action_space[idx, t0:tmax] = deepcopy(player.action_set[t0:tmax])
         return action_space
     
-    def get_action_space_specific(self, indices, **kwargs) -> np.ndarray :
+    def get_action_space_specific(self, indices: tuple[int, int], **kwargs) -> np.ndarray :
         """Function which extract the action sets of the players of the game at current state.
 
         Returns
@@ -732,13 +771,13 @@ class Game:
         temp = np.array(temp)
         return actions, utilities, temp
 
-    def pareto_front_multiple(self, indices : tuple, nb_points=50,**kwargs):
+    def pareto_front_multiple(self, indices : tuple[int,int], nb_points=50,**kwargs):
         if len(indices) > 2:
             return 'Err: Number of player superior to 2.'
         i1, i2 = indices
         t0 = kwargs.get('t0', 0)
         tmax = kwargs.get('tmax', self.T) + t0
-        a_1, a_2 = self.get_action_space_specific(self, indices, **kwargs) 
+        a_1, a_2 = self.get_action_space_specific(indices, **kwargs) 
         min1max2 = np.stack((a_1[..., 0], a_2[...,1] ))
         max1min2 = np.stack((a_1[..., 1], a_2[...,0] ))
         val1val2 = self.game_with_strategies_profile(min1max2, np.sum(min1max2, axis=0))[0]
@@ -866,11 +905,12 @@ class Game:
             t_piece, self.planning_social_optimum, desc= 'Planning SO, t_piece = {}'.format(t_piece), **kwargs)
     
     def repeated_one_shot_game_NE(self, **kwargs)-> None:
-
+        kwargs.pop('t_piece', None)
         self.ne_a_p, self.ne_sum_a_p, self.ne_u_p, self.ne_sum_u_p, self.ne_temp_p = self.planning_over_t_piece(
             1, self.best_response_dynamic_planning, desc= 'Repeated One-shot BRD',**kwargs)
 
     def repeated_one_shot_game_SO(self, **kwargs)-> None:
+        kwargs.pop('t_piece', None)
         self.so_a_p, self.so_sum_a_p, self.so_u_p, self.so_sum_u_p, self.so_temp_p = self.planning_over_t_piece(
             1, self.planning_social_optimum, desc= 'Repeated One-shot SO',**kwargs)
 
@@ -942,7 +982,41 @@ class Game:
 
 
     
+    def generate_efficiency_table(self, functions, repetitions=10, **kwargs):
+        efficiency_table = []
 
+        for func_name in functions:
+            func = getattr(self, func_name, None)
+            if func is None:
+                print(f"Function '{func_name}' not found in the class.")
+                continue
+
+            print(f"Running '{func_name}' for {repetitions} repetitions...")
+            start_time = time.time()
+            results = []
+
+            for _ in range(repetitions):
+                # Run the function and measure the time taken
+                func_start_time = time.time()
+                func_result = func(**kwargs)
+                func_end_time = time.time()
+                func_time = func_end_time - func_start_time
+
+                # Append the result and time to the results list
+                results.append(func_result)
+
+            end_time = time.time()
+            total_time = end_time - start_time
+            avg_time = total_time / repetitions
+
+            # Add the function name, average time, and other metrics to the table
+            efficiency_table.append([func_name, avg_time, len(results)])
+
+        # Create the table with tabulate
+        table_headers = ["Function", "Avg Time (s)", "Repetitions"]
+        efficiency_table_str = tabulate(efficiency_table, headers=table_headers, tablefmt="latex")
+
+        return efficiency_table_str
 
 
     def jacobian_sum_benefice(self, a : np.ndarray):

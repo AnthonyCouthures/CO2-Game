@@ -1,5 +1,6 @@
 import numpy as np
 from models.geophysic_models import *
+from collections.abc import Callable
 
 # def damage_polynome(coefficients : np.ndarray) -> callable :
 #     """Function which create a damage function.
@@ -96,6 +97,66 @@ def damage_polynome(coefficients : np.ndarray) -> callable :
     return damage
 
 
+def damage_polynome(temp, coefficients : np.ndarray, **kwargs) -> Callable : 
+
+    
+
+    if temp is None :
+        sum_action : np.ndarray = kwargs.get('sum_action', None)
+        scm : Simple_Climate_Model = kwargs.get('scm', None)
+        if type(sum_action) is not np.float64 :
+            temp = scm.evaluate_trajectory(sum_action, **kwargs)
+        else :
+            temp = scm.evaluate_trajectory(np.array([sum_action]))[-1][0]
+    return np.polyval(np.flip(coefficients),temp)
+
+def damage_exponential(coefficients : np.ndarray) : 
+    def damage(temp, **kwargs) -> float:
+        """Damage function. 
+
+        Parameters
+        ----------
+        sum_action : float
+            The total emissions of all players.
+
+        Returns
+        -------
+        float
+            Damage for a given emission.
+
+        Other Parameters
+        ----------------
+        scm : Simple_Climate_Model
+            Simple Climate model.
+        temp : float
+            Atmospheric temperature.
+        **kwargs : dict, optional
+            Extra arguments to damage function.
+
+        """
+        
+
+        if temp is None :
+            sum_action = kwargs.get('sum_action', None)
+            scm : Simple_Climate_Model = kwargs.get('scm', None)
+            if type(sum_action) is not np.float64 :
+                temp = scm.evaluate_trajectory(sum_action, **kwargs)
+            else :
+                temp = scm.evaluate_trajectory(np.array([sum_action]))[-1][0]
+        return np.polyval(np.flip(coefficients),temp)
+    return damage
+
+def damage_exponential(temp, coefficients : np.ndarray, **kwargs) : 
+
+
+    if temp is None :
+        sum_action = kwargs.get('sum_action', None)
+        scm : Simple_Climate_Model = kwargs.get('scm', None)
+        if type(sum_action) is not np.float64 :
+            temp = scm.evaluate_trajectory(sum_action, **kwargs)
+        else :
+            temp = scm.evaluate_trajectory(np.array([sum_action]))[-1][0]
+    return coefficients[0] * np.exp(temp * coefficients[1]) + coefficients[2]
 
 
 # def damage_function_economists(coefficients : np.ndarray) -> callable :

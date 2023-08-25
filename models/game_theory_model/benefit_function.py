@@ -2,8 +2,11 @@ import autograd.numpy as np
 import pandas as pd
 import numpy as np 
 
+from collections.abc import Callable
 
-def polynome(coefficients : np.ndarray) -> callable :
+
+
+def polynome(coefficients : np.ndarray) -> Callable :
     """Polynomial benefit function.
 
     Parameters
@@ -13,7 +16,7 @@ def polynome(coefficients : np.ndarray) -> callable :
 
     Returns
     -------
-    callable
+    Callable
         Benefit function.
     """
     def benef(x):
@@ -35,7 +38,7 @@ def benefit_affine(GDP_max : float, e_max :float, percentage_green : float = 0 )
 
     Returns
     -------
-    callable
+    Callable
         Benefit function taking into argument CO2 emissions.
 
     Notes
@@ -51,7 +54,7 @@ def benefit_affine(GDP_max : float, e_max :float, percentage_green : float = 0 )
         return GDP_max * (1-percentage_green) * x /e_max + GDP_max*percentage_green
     return benef
 
-def benefit_quadratic_concave(GDP_max : float, e_max : float, percentage_green : float =0, **kwargs) -> callable :
+def benefit_quadratic_concave(GDP_max : float, e_max : float, percentage_green : float =0, **kwargs) -> Callable :
     r"""Basic concave benefit funtion. This function attain its maximum at maximum emsission. 
     
 
@@ -66,7 +69,7 @@ def benefit_quadratic_concave(GDP_max : float, e_max : float, percentage_green :
 
     Returns
     -------
-    callable
+    Callable
         Benefit function taking into argument CO2 emissions.
 
     Notes
@@ -85,7 +88,7 @@ def benefit_quadratic_concave(GDP_max : float, e_max : float, percentage_green :
         return np.polyval(np.flip(benef_coef),x)
     return benef
 
-def benefit_polynome(GDP_max : float, e_max : float, percentage_green : float =0,  **kwargs) -> callable :
+def benefit_polynome(GDP_max : float, e_max : float, percentage_green : float =0,  **kwargs) -> Callable :
     r"""Basic concave benefit funtion. This function attain its maximum at maximum emsission. 
     
 
@@ -100,7 +103,7 @@ def benefit_polynome(GDP_max : float, e_max : float, percentage_green : float =0
 
     Returns
     -------
-    callable
+    Callable
         Benefit function taking into argument CO2 emissions.
 
     Notes
@@ -129,13 +132,13 @@ def benefit_log(GDP_max, e_max, percentage_green = 0, deg=1):
 def benefit_root(GDP_max, e_max, percentage_green = 0, deg=1):
     x = np.array([1e-10, e_max])
     y = np.array([GDP_max * percentage_green, GDP_max])
-    fit = np.poly1d(np.polyfit(x**.005, y,deg))
+    fit = np.poly1d(np.polyfit(x**0.005, y,deg))
     def benef(x):
         return fit(x**.005)
     return benef
 
 
-def benefit_quadratic_convex(GDP_max : float, e_max : float, percentage_green : float =0) -> callable :
+def benefit_quadratic_convex(GDP_max : float, e_max : float, percentage_green : float =0) -> Callable :
     r"""Basic convex benefit funtion. This function attain its maximum at maximum emsission. 
     
 
@@ -150,7 +153,7 @@ def benefit_quadratic_convex(GDP_max : float, e_max : float, percentage_green : 
 
     Returns
     -------
-    callable
+    Callable
         Benefit function taking into argument CO2 emissions.
 
     Notes
@@ -167,13 +170,13 @@ def benefit_quadratic_convex(GDP_max : float, e_max : float, percentage_green : 
         return np.polyval(np.flip(benef_coef),x)
     return benef
 
-def benefit_quadratic_concave_with_green(GDP_max : float, e_max : float, coef_green : np.ndarray = 0.5, percentage_green : float =0) -> callable :
+def benefit_quadratic_concave_with_green(GDP_max : float, e_max : float, coef_green : np.ndarray = 0.5, percentage_green : float =0) -> Callable :
     benef_coef = np.array([GDP_max * percentage_green , 2 * (GDP_max - GDP_max * percentage_green) /e_max, -(GDP_max - GDP_max * percentage_green) /e_max**2 ])
     def benef(x):
         return np.polyval(np.flip(benef_coef),x) + (1-x)* coef_green
     return benef
     
-def benefit_quadratic_convex_with_percentage_green(GDP_max : float, e_max : float, percentage_green : float =0) -> callable :
+def benefit_quadratic_convex_with_percentage_green(GDP_max : float, e_max : float, percentage_green : float =0) -> Callable :
     
     benef_coef = np.array([GDP_max * percentage_green , 0, (GDP_max - GDP_max * percentage_green) /e_max**2 ])
     def benef(x):
@@ -181,7 +184,7 @@ def benefit_quadratic_convex_with_percentage_green(GDP_max : float, e_max : floa
     return benef
 
 
-def polynome_fitted(data : pd.DataFrame, degree) -> callable :
+def polynome_fitted(data : pd.DataFrame, degree) -> Callable :
     pass
 
 def benefice_exponential(GDP_max : float, e_max : float, power : float = 0.3) : 
@@ -206,7 +209,7 @@ def benefit_sigm_(GDP_max : float, e_max :float, percentage_green =0 , power : f
 
     Returns
     -------
-    callable
+    Callable
             Benefit function taking into argument CO2 emissions.
 
     Notes
@@ -244,7 +247,7 @@ def benefit_sigm(GDP_max : float, e_max :float, percentage_green =0 , power : fl
 
     Returns
     -------
-    callable
+    Callable
             Benefit function taking into argument CO2 emissions.
 
     Notes
@@ -276,23 +279,23 @@ def benefit_econmical_shape(GDP_max, e_max, saving_rate = 0.25,  sigma = 0.16):
     return benef
 
 
-# def polynome(coefficients : np.ndarray) -> callable :
+# def polynome(coefficients : np.ndarray) -> Callable :
 
 #     benef = np.polynomial.Polynomial(coefficients)
 #     return benef
 
-# def benefit_quadratic_concave_with_percentage_green(GDP_max : float, e_max : float, percentage_green : float ) -> callable :
+# def benefit_quadratic_concave_with_percentage_green(GDP_max : float, e_max : float, percentage_green : float ) -> Callable :
 #     benef_coef = np.array([GDP_max * percentage_green , 2 * (GDP_max - GDP_max * percentage_green) /e_max, -(GDP_max - GDP_max * percentage_green) /e_max**2 ])
 
 #     return np.polynomial.Polynomial(benef_coef)
 
-# def benefit_quadratic_convex_with_percentage_green(GDP_max : float, e_max : float, percentage_green : float ) -> callable :
+# def benefit_quadratic_convex_with_percentage_green(GDP_max : float, e_max : float, percentage_green : float ) -> Callable :
 #     benef_coef = np.array([GDP_max * percentage_green , 0, (GDP_max - GDP_max * percentage_green) /e_max**2 ])
 
 #     return np.polynomial.Polynomial(benef_coef)
 
 
-# def polynome_fitted(data : pd.DataFrame, degree) -> callable :
+# def polynome_fitted(data : pd.DataFrame, degree) -> Callable :
 #     pass
 
 # def benefice_exponential(GDP_max : float, e_max : float, power : float = 0.3) : 

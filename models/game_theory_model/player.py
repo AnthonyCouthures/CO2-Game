@@ -113,6 +113,7 @@ class player_class:
     def benefit(self, actions : np.ndarray, **kwargs):
 
         GDP_max = kwargs.get('GDP_max', self.GDP_max) # non t dependant yet
+        # print(GDP_max)
         e_max = kwargs.get('e_max', self.action_set[:,1]) #t dependant
         percentage_green = kwargs.get('percentage_green', self.percentage_green) # non t dependant yet
         t = kwargs.get('t', None)
@@ -233,7 +234,7 @@ class player_class:
    
         # res = minimize(response, x0 = x0, bounds=bounds, constraints=constraint, jac=jac, options={'maxiter': 1000, 'disp': 0})
         # print('Without JAC', res)
-
+        # print(self.name, ': ', res.x)
         if not res.success:
             print(self.name)
             print(bounds)
@@ -320,457 +321,457 @@ class player_class:
     
 
 
-class Invest_Player:
-    """Class of a player that invests in order to reduce emissions.
+# class Invest_Player:
+#     """Class of a player that invests in order to reduce emissions.
 
-    Parameters
-    ----------
-    name : str
-        Name of the player.
-    investment_set : np.ndarray
-        Initial investment set of the player (i_min, i_max).
-    benefit_function : callable
-        Benefit function shape of the player, it takes as argument (GDP, i_max, percentage_green).
-    GDP_initial : float
-        Initial GDP of the player, i.e the maximum a player can attain with his benefit function.
-    damage_function : callable
-        Damage function, it takes as argument emissions.
-    impact_factor_of_temperature : float
-        Temperature multiplier of the player.
-    alpha : float, optional
-        Power of the damage function, by default 1.
-    emission_saturation : float, optional
-        Maximum possible emission level of the player, by default 1.
-    percentage_green : float, optional
-        Percentage of the benefit being decarbonated, by default 0.
-    damage_in_percentage : bool, optional
-        Specify if the damage is as percentage of GDP, by default True.
-    discount : float, optional
-        Discount rate for future utility, by default 1.
+#     Parameters
+#     ----------
+#     name : str
+#         Name of the player.
+#     investment_set : np.ndarray
+#         Initial investment set of the player (i_min, i_max).
+#     benefit_function : callable
+#         Benefit function shape of the player, it takes as argument (GDP, i_max, percentage_green).
+#     GDP_initial : float
+#         Initial GDP of the player, i.e the maximum a player can attain with his benefit function.
+#     damage_function : callable
+#         Damage function, it takes as argument emissions.
+#     impact_factor_of_temperature : float
+#         Temperature multiplier of the player.
+#     alpha : float, optional
+#         Power of the damage function, by default 1.
+#     emission_saturation : float, optional
+#         Maximum possible emission level of the player, by default 1.
+#     percentage_green : float, optional
+#         Percentage of the benefit being decarbonated, by default 0.
+#     damage_in_percentage : bool, optional
+#         Specify if the damage is as percentage of GDP, by default True.
+#     discount : float, optional
+#         Discount rate for future utility, by default 1.
 
-    Attributes
-    ----------
-    name : str
-        Name of the player
-    investment_set_initial : tuple
-        Initial investment set of the player (i_min, i_max).
-    GDP_initial : float
-        Initial GDP of the player, i.e the maximum a player can attain with his benefit function.
-    percentage_green : float
-        Percentage of the benefit being decarbonated.
-    benefit_shape : callable
-        Benefit function shape of the player, it takes as argument (GDP, i_max, percentage_green).
-    GDP_max : float
-        Current GDP of the player, i.e the maximum a player can attain with his benefit function.
-    investment_set : np.ndarray
-        Current investment set of the player (i_min, i_max).
-    T : int
-        Number of time periods.
-    damage_function : callable
-        Damage function, it takes as argument emissions.
-    delta : float
-        Temperature multiplier of the player.
-    alpha : float
-        Power of the damage function.
-    emission_saturation : float
-        Maximum possible emission level of the player.
-    damage_in_percentage : bool
-        Specify if the damage is as percentage of GDP.
-    discount : float
-        Discount rate for future utility.
-    """
+#     Attributes
+#     ----------
+#     name : str
+#         Name of the player
+#     investment_set_initial : tuple
+#         Initial investment set of the player (i_min, i_max).
+#     GDP_initial : float
+#         Initial GDP of the player, i.e the maximum a player can attain with his benefit function.
+#     percentage_green : float
+#         Percentage of the benefit being decarbonated.
+#     benefit_shape : callable
+#         Benefit function shape of the player, it takes as argument (GDP, i_max, percentage_green).
+#     GDP_max : float
+#         Current GDP of the player, i.e the maximum a player can attain with his benefit function.
+#     investment_set : np.ndarray
+#         Current investment set of the player (i_min, i_max).
+#     T : int
+#         Number of time periods.
+#     damage_function : callable
+#         Damage function, it takes as argument emissions.
+#     delta : float
+#         Temperature multiplier of the player.
+#     alpha : float
+#         Power of the damage function.
+#     emission_saturation : float
+#         Maximum possible emission level of the player.
+#     damage_in_percentage : bool
+#         Specify if the damage is as percentage of GDP.
+#     discount : float
+#         Discount rate for future utility.
+#     """
 
-    def __init__(self, name: str,
-                investment_set: np.ndarray,
-                benefit_function: Callable,
-                GDP_initial: float,
-                damage_function: Callable,
-                impact_factor_of_temperature: float,
-                scm : Simple_Climate_Model = SCM,
-                alpha: float = 1,
-                emission_saturation: float = 1,
-                percentage_green: float = 0,
-                damage_in_percentage: bool = True,
-                discount: float = 1,
-                state: float = 0) -> None:
+#     def __init__(self, name: str,
+#                 investment_set: np.ndarray,
+#                 benefit_function: Callable,
+#                 GDP_initial: float,
+#                 damage_function: Callable,
+#                 impact_factor_of_temperature: float,
+#                 scm : Simple_Climate_Model = SCM,
+#                 alpha: float = 1,
+#                 emission_saturation: float = 1,
+#                 percentage_green: float = 0,
+#                 damage_in_percentage: bool = True,
+#                 discount: float = 1,
+#                 state: float = 0) -> None:
 
-        self.name: str = name
-        "Name of the player"
+#         self.name: str = name
+#         "Name of the player"
 
-        self.investment_set_initial: np.ndarray = investment_set
-        "Initial investment set of the player (i_min, i_max)"
+#         self.investment_set_initial: np.ndarray = investment_set
+#         "Initial investment set of the player (i_min, i_max)"
 
-        self.GDP_initial: float = GDP_initial
-        "Initial GDP of the player, i.e the maximum a player can attain with his benefit function."
+#         self.GDP_initial: float = GDP_initial
+#         "Initial GDP of the player, i.e the maximum a player can attain with his benefit function."
 
-        self.percentage_green: float = percentage_green
-        "Percentage of the benefit being decarbonated."
+#         self.percentage_green: float = percentage_green
+#         "Percentage of the benefit being decarbonated."
 
-        self.benefit_shape: Callable = benefit_function
-        "Benefit function shape of the player, it takes as argument (GDP, i_max, percentage_green)."
+#         self.benefit_shape: Callable = benefit_function
+#         "Benefit function shape of the player, it takes as argument (GDP, i_max, percentage_green)."
 
-        self.GDP_max = deepcopy(GDP_initial)
-        "Current GDP of the player, i.e the maximum a player can attain with his benefit function."
+#         self.GDP_max = deepcopy(GDP_initial)
+#         "Current GDP of the player, i.e the maximum a player can attain with his benefit function."
 
-        self.investment_set = deepcopy(investment_set)  # deepcopy for create a new memory location
-        "Current investment set of the player (i_min, i_max)"
+#         self.investment_set = deepcopy(investment_set)  # deepcopy for create a new memory location
+#         "Current investment set of the player (i_min, i_max)"
 
-        self.T: int = investment_set.shape[0]
-        "Number of time periods"
+#         self.T: int = investment_set.shape[0]
+#         "Number of time periods"
 
-        self.damage_function = damage_function
-        "Damage function, it takes as argument emissions."
+#         self.damage_function = damage_function
+#         "Damage function, it takes as argument emissions."
 
-        self.delta: float = impact_factor_of_temperature
-        "Temperature multiplier the player"
+#         self.delta: float = impact_factor_of_temperature
+#         "Temperature multiplier the player"
 
-        self.alpha: float = alpha
-        "Power of the damage function"
+#         self.alpha: float = alpha
+#         "Power of the damage function"
 
-        self.damage_in_percentage: bool = damage_in_percentage
-        "Specify if the damage is as percentage of GDP."
+#         self.damage_in_percentage: bool = damage_in_percentage
+#         "Specify if the damage is as percentage of GDP."
 
-        self.scm = deepcopy(scm)
-        "Simple Climate Model of the player"
+#         self.scm = deepcopy(scm)
+#         "Simple Climate Model of the player"
 
-        self.discount: float = discount
+#         self.discount: float = discount
 
-        self.state: float = state
-        "State variable used in the emission function"
+#         self.state: float = state
+#         "State variable used in the emission function"
 
-        self.emission_saturation: Union[float, np.ndarray] = emission_saturation
-        "Maximum possible emission level of the player"
-
-
-    def reset_player(self):
-        # deepcopy for reset due to pointer
-        self.investment_set = deepcopy(self.investment_set_initial)
-        self.GDP_max = deepcopy(self.GDP_initial)
-        self.state = deepcopy(0)
-        self.emission_saturation = deepcopy(self.emission_saturation)
-
-    def reset(self):
-        """Function which reset the player.
-        """
-        self.reset_player()
-
-    def emission(self, investment: Union[float, np.ndarray], **kwargs) -> np.ndarray:
-        """Calculate the player's emission based on their investment and the state variable using a decreasing sigmoid function.
-
-        Parameters
-        ----------
-        investment : float
-            The player's investment level.
-
-        Returns
-        -------
-        float
-            The player's emission level.
-        """
-
-        state = kwargs.pop('state', self.state)
-        emission_saturation = kwargs.pop('emission_saturation', self.emission_saturation)
+#         self.emission_saturation: Union[float, np.ndarray] = emission_saturation
+#         "Maximum possible emission level of the player"
 
 
-        new_state = deepcopy(state)
+#     def reset_player(self):
+#         # deepcopy for reset due to pointer
+#         self.investment_set = deepcopy(self.investment_set_initial)
+#         self.GDP_max = deepcopy(self.GDP_initial)
+#         self.state = deepcopy(0)
+#         self.emission_saturation = deepcopy(self.emission_saturation)
+
+#     def reset(self):
+#         """Function which reset the player.
+#         """
+#         self.reset_player()
+
+#     def emission(self, investment: Union[float, np.ndarray], **kwargs) -> np.ndarray:
+#         """Calculate the player's emission based on their investment and the state variable using a decreasing sigmoid function.
+
+#         Parameters
+#         ----------
+#         investment : float
+#             The player's investment level.
+
+#         Returns
+#         -------
+#         float
+#             The player's emission level.
+#         """
+
+#         state = kwargs.pop('state', self.state)
+#         emission_saturation = kwargs.pop('emission_saturation', self.emission_saturation)
+
+
+#         new_state = deepcopy(state)
             
-        if isinstance(investment, float):
-            # Update state based on current investment and previous state
-            self.state = 0.5 * self.state + investment
-            return emission_saturation * (1 -  1 / (1 + np.exp(-self.state)))
-        else:
-            emissions = []
-            for inv in investment:
-                new_state = 0.5 * new_state + inv
-                emissions.append(emission_saturation * (1 -  1 / (1 + np.exp(-self.state))))
-            return np.array(emissions)
+#         if isinstance(investment, float):
+#             # Update state based on current investment and previous state
+#             self.state = 0.5 * self.state + investment
+#             return emission_saturation * (1 -  1 / (1 + np.exp(-self.state)))
+#         else:
+#             emissions = []
+#             for inv in investment:
+#                 new_state = 0.5 * new_state + inv
+#                 emissions.append(emission_saturation * (1 -  1 / (1 + np.exp(-self.state))))
+#             return np.array(emissions)
 
-    def benefit(self, investments: Union[float,np.ndarray], **kwargs):
-        GDP_max = kwargs.get('GDP_max', self.GDP_max)  # non-t dependent yet
-        i_max = kwargs.get('i_max', self.investment_set[:, 1])  # t dependent
-        percentage_green = kwargs.get('percentage_green', self.percentage_green)  # non-t dependent yet
-        t = kwargs.get('t', None)
-        if t is None:
-            t0 = kwargs.get('t0', 0)
-            return np.array([self.benefit_shape(GDP_max, i_max[t0+t], percentage_green)(investments[t]) for t in range(len(investments))])
-        else:
-            return self.benefit_shape(GDP_max, i_max[t], percentage_green)(investments)
+#     def benefit(self, investments: Union[float,np.ndarray], **kwargs):
+#         GDP_max = kwargs.get('GDP_max', self.GDP_max)  # non-t dependent yet
+#         i_max = kwargs.get('i_max', self.investment_set[:, 1])  # t dependent
+#         percentage_green = kwargs.get('percentage_green', self.percentage_green)  # non-t dependent yet
+#         t = kwargs.get('t', None)
+#         if t is None:
+#             t0 = kwargs.get('t0', 0)
+#             return np.array([self.benefit_shape(GDP_max, i_max[t0+t], percentage_green)(investments[t]) for t in range(len(investments))])
+#         else:
+#             return self.benefit_shape(GDP_max, i_max[t], percentage_green)(investments)
 
-    def damages(self, investment, sum_other_emissions, **kwargs):
-        emissions = self.emission(investment, **kwargs) + sum_other_emissions
-        temperature_target = kwargs.pop('temperature_target', None)
-        final_multiplier = kwargs.pop('final_multiplier', FINAL_MULTIPLIER)
+#     def damages(self, investment, sum_other_emissions, **kwargs):
+#         emissions = self.emission(investment, **kwargs) + sum_other_emissions
+#         temperature_target = kwargs.pop('temperature_target', None)
+#         final_multiplier = kwargs.pop('final_multiplier', FINAL_MULTIPLIER)
 
-        atmospheric_temperatures = kwargs.get('temp', self.scm.evaluate_trajectory(emissions, **kwargs)[-1])
-        if self.damage_in_percentage:
-            GDP_max = kwargs.pop('GDP_max', self.GDP_max)
-            damages = self.delta * GDP_max / 100 * self.damage_function(atmospheric_temperatures) ** self.alpha
-        else:
-            damages = self.delta * self.damage_function(atmospheric_temperatures) ** self.alpha
+#         atmospheric_temperatures = kwargs.get('temp', self.scm.evaluate_trajectory(emissions, **kwargs)[-1])
+#         if self.damage_in_percentage:
+#             GDP_max = kwargs.pop('GDP_max', self.GDP_max)
+#             damages = self.delta * GDP_max / 100 * self.damage_function(atmospheric_temperatures) ** self.alpha
+#         else:
+#             damages = self.delta * self.damage_function(atmospheric_temperatures) ** self.alpha
 
-        if temperature_target is not None:
-            damages = damages + final_multiplier * (atmospheric_temperatures[-1] - temperature_target)
+#         if temperature_target is not None:
+#             damages = damages + final_multiplier * (atmospheric_temperatures[-1] - temperature_target)
 
-        return damages
+#         return damages
 
-    def utility_one_shot(self, investment: float, sum_other_emissions: float, t: int, **kwargs) -> float:
-        scm = kwargs.pop('scm', self.scm)
-        temp = kwargs.pop('temp', scm.evaluate_trajectory(self.emission(investment) + sum_other_emissions), **kwargs)
+#     def utility_one_shot(self, investment: float, sum_other_emissions: float, t: int, **kwargs) -> float:
+#         scm = kwargs.pop('scm', self.scm)
+#         temp = kwargs.pop('temp', scm.evaluate_trajectory(self.emission(investment) + sum_other_emissions), **kwargs)
 
-        utility = self.benefit(investment, t=t, **kwargs) - self.damages(investment, sum_other_emissions, temp=temp, **kwargs)
+#         utility = self.benefit(investment, t=t, **kwargs) - self.damages(investment, sum_other_emissions, temp=temp, **kwargs)
 
-        return utility
+#         return utility
 
-    def utility_sum_over_t(self, investments, sum_other_emissions, **kwargs):
-        if self.discount != 1:
-            discount = self.discount ** np.arange(len(investments))
-        else:
-            discount = 1
-        benefit = self.benefit(investments, **kwargs)
-        damages = self.damages(investments, sum_other_emissions, **kwargs)
-        utility = np.sum(discount * (benefit - damages))
+#     def utility_sum_over_t(self, investments, sum_other_emissions, **kwargs):
+#         if self.discount != 1:
+#             discount = self.discount ** np.arange(len(investments))
+#         else:
+#             discount = 1
+#         benefit = self.benefit(investments, **kwargs)
+#         damages = self.damages(investments, sum_other_emissions, **kwargs)
+#         utility = np.sum(discount * (benefit - damages))
 
-        return utility
-
-
-    def best_response_over_t(self, others_emissions, **kwargs):
-        t0 = kwargs.get('t0', 0)
-        tmax = kwargs.get('tmax', len(others_emissions)) + t0
-        def response(x):
-            return -self.utility_sum_over_t(x, others_emissions, **kwargs)
-        action_set = self.investment_set[t0:tmax,:]
-        bounds = Bounds(lb = action_set[:,0], ub = action_set[:,1], keep_feasible=True) 
-        x0 = kwargs.get('x0', action_set[:,1])
-        res = minimize(response, x0 = x0, bounds=bounds,  method='SLSQP', tol=1e-6, options={'maxiter': 10000, 'disp': 0})
-        if not res.success:
-            print(self.name)
-            print(bounds)
-            print(self.alpha)
-            print(res)
-        return res.x
+#         return utility
 
 
+#     def best_response_over_t(self, others_emissions, **kwargs):
+#         t0 = kwargs.get('t0', 0)
+#         tmax = kwargs.get('tmax', len(others_emissions)) + t0
+#         def response(x):
+#             return -self.utility_sum_over_t(x, others_emissions, **kwargs)
+#         action_set = self.investment_set[t0:tmax,:]
+#         bounds = Bounds(lb = action_set[:,0], ub = action_set[:,1], keep_feasible=True) 
+#         x0 = kwargs.get('x0', action_set[:,1])
+#         res = minimize(response, x0 = x0, bounds=bounds,  method='SLSQP', tol=1e-6, options={'maxiter': 10000, 'disp': 0})
+#         if not res.success:
+#             print(self.name)
+#             print(bounds)
+#             print(self.alpha)
+#             print(res)
+#         return res.x
 
-class Player:
-    """Class representing a player in a game of climate change.
 
-    Parameters
-    ----------
-    name : str
-        The name of the player.
-    action_set : np.ndarray
-        The initial action set of the player, i.e. the minimum and maximum emissions.
-    benefit_function : callable
-        The benefit function of the player, which takes as arguments the GDP, maximum emissions, and percentage green.
-    GDP_initial : float
-        The initial GDP of the player, i.e. the maximum attainable GDP with the benefit function.
-    damage_function : callable
-        The damage function of the player, which takes as an argument the emissions.
-    impact_factor_of_temperature: float
-        The temperature multiplier of the player.
-    scm : Simple_Climate_Model, optional
-        The Simple Climate Model of the player.
-    alpha : float, optional
-        The power of the damage function.
-    increase_co2 : float, optional
-        The ratio by which the player tends to increase its CO2 emissions over the game if it polluted at maximum.
-    percentage_green : float, optional
-        The percentage of the benefit being decarbonated.
-    damage_in_percentage : bool, optional
-        Specifies if the damage is a percentage of the GDP.
-    discount : float, optional
-        The discount factor used for calculating discounted utility.
 
-    Attributes
-    ----------
-    name : str
-        The name of the player.
-    action_set_initial : tuple
-        The initial action set of the player (e_min, e_max).
-    GDP_initial : float
-        The initial GDP of the player, i.e the maximum a player can attain with his benefit function.
-    percentage_green : float
-        The percentage of the benefit being decarbonated.
-    benefit_shape : callable
-        The benefit function shape of the player, it takes as argument (GDP, e_max, percentage_green).
-    GDP_max : float
-        The maximum GDP attainable by the player.
-    action_set : np.ndarray
-        The current action set of the player (e_min, e_max).
-    T : int
-        The number of time periods.
-    scm : Simple_Climate_Model
-        The Simple Climate Model of the player.
-    damage_function : callable
-        The damage function of the player, which takes as an argument the emissions.
-    delta : float
-        The temperature multiplier of the player.
-    alpha : float
-        The power of the damage function.
-    increase_co2 : float
-        The ratio by which the player tends to increase its CO2 emissions over the game if it polluted at maximum.
-    damage_in_percentage : bool
-        Specifies if the damage is a percentage of the GDP.
-    discount : float
-        The discount factor used for calculating discounted utility.
-    """
+# class Player:
+#     """Class representing a player in a game of climate change.
 
-    def __init__(self, name : str,
-                action_set : np.ndarray,
-                benefit_function : callable, 
-                GDP_initial : float,
-                damage_function : callable,
-                impact_factor_of_temperature: float,
-                scm : Simple_Climate_Model = SCM,
-                alpha : float = 1,
-                increase_co2 = INCREASE_CO2_RATIO,
-                percentage_green = 0,
-                damage_in_percentage = True,
-                discount = 1) -> None:
+#     Parameters
+#     ----------
+#     name : str
+#         The name of the player.
+#     action_set : np.ndarray
+#         The initial action set of the player, i.e. the minimum and maximum emissions.
+#     benefit_function : callable
+#         The benefit function of the player, which takes as arguments the GDP, maximum emissions, and percentage green.
+#     GDP_initial : float
+#         The initial GDP of the player, i.e. the maximum attainable GDP with the benefit function.
+#     damage_function : callable
+#         The damage function of the player, which takes as an argument the emissions.
+#     impact_factor_of_temperature: float
+#         The temperature multiplier of the player.
+#     scm : Simple_Climate_Model, optional
+#         The Simple Climate Model of the player.
+#     alpha : float, optional
+#         The power of the damage function.
+#     increase_co2 : float, optional
+#         The ratio by which the player tends to increase its CO2 emissions over the game if it polluted at maximum.
+#     percentage_green : float, optional
+#         The percentage of the benefit being decarbonated.
+#     damage_in_percentage : bool, optional
+#         Specifies if the damage is a percentage of the GDP.
+#     discount : float, optional
+#         The discount factor used for calculating discounted utility.
+
+#     Attributes
+#     ----------
+#     name : str
+#         The name of the player.
+#     action_set_initial : tuple
+#         The initial action set of the player (e_min, e_max).
+#     GDP_initial : float
+#         The initial GDP of the player, i.e the maximum a player can attain with his benefit function.
+#     percentage_green : float
+#         The percentage of the benefit being decarbonated.
+#     benefit_shape : callable
+#         The benefit function shape of the player, it takes as argument (GDP, e_max, percentage_green).
+#     GDP_max : float
+#         The maximum GDP attainable by the player.
+#     action_set : np.ndarray
+#         The current action set of the player (e_min, e_max).
+#     T : int
+#         The number of time periods.
+#     scm : Simple_Climate_Model
+#         The Simple Climate Model of the player.
+#     damage_function : callable
+#         The damage function of the player, which takes as an argument the emissions.
+#     delta : float
+#         The temperature multiplier of the player.
+#     alpha : float
+#         The power of the damage function.
+#     increase_co2 : float
+#         The ratio by which the player tends to increase its CO2 emissions over the game if it polluted at maximum.
+#     damage_in_percentage : bool
+#         Specifies if the damage is a percentage of the GDP.
+#     discount : float
+#         The discount factor used for calculating discounted utility.
+#     """
+
+#     def __init__(self, name : str,
+#                 action_set : np.ndarray,
+#                 benefit_function : callable, 
+#                 GDP_initial : float,
+#                 damage_function : callable,
+#                 impact_factor_of_temperature: float,
+#                 scm : Simple_Climate_Model = SCM,
+#                 alpha : float = 1,
+#                 increase_co2 = INCREASE_CO2_RATIO,
+#                 percentage_green = 0,
+#                 damage_in_percentage = True,
+#                 discount = 1) -> None:
         
-        """
-        Parameters:
-        -----------
-        name : str
-            Name of the player.
-        action_set : np.ndarray
-            Initial action set of the player (e_min, e_max).
-        benefit_function : callable
-            Benefit function shape of the player, it takes as argument (GDP, e_max, percentage_green).
-        GDP_initial : float
-            Initial GDP of the player, i.e., the maximum a player can attain with his benefit function.
-        damage_function : callable
-            Damage function, it takes as argument emissions.
-        impact_factor_of_temperature : float
-            Temperature multiplier the player.
-        scm : Simple_Climate_Model
-            Simple Climate Model of the player.
-        alpha : float, optional (default = 1)
-            Power of the damage function.
-        increase_co2 : float, optional (default = INCREASE_CO2_RATIO)
-            Ratio of player tend to increase his co2 emissions over a game if it polluted at maximum.
-        percentage_green : int, optional (default = 0)
-            Percentage of the benefit being decarbonated.
-        damage_in_percentage : bool, optional (default = True)
-            Specify if the damage is as percentage of GDP.
-        discount : float, optional (default = 1)
-            Discount rate of the utility.
+#         """
+#         Parameters:
+#         -----------
+#         name : str
+#             Name of the player.
+#         action_set : np.ndarray
+#             Initial action set of the player (e_min, e_max).
+#         benefit_function : callable
+#             Benefit function shape of the player, it takes as argument (GDP, e_max, percentage_green).
+#         GDP_initial : float
+#             Initial GDP of the player, i.e., the maximum a player can attain with his benefit function.
+#         damage_function : callable
+#             Damage function, it takes as argument emissions.
+#         impact_factor_of_temperature : float
+#             Temperature multiplier the player.
+#         scm : Simple_Climate_Model
+#             Simple Climate Model of the player.
+#         alpha : float, optional (default = 1)
+#             Power of the damage function.
+#         increase_co2 : float, optional (default = INCREASE_CO2_RATIO)
+#             Ratio of player tend to increase his co2 emissions over a game if it polluted at maximum.
+#         percentage_green : int, optional (default = 0)
+#             Percentage of the benefit being decarbonated.
+#         damage_in_percentage : bool, optional (default = True)
+#             Specify if the damage is as percentage of GDP.
+#         discount : float, optional (default = 1)
+#             Discount rate of the utility.
 
-        Returns:
-        --------
-        None
-        """
+#         Returns:
+#         --------
+#         None
+#         """
 
-        self.name : str = name
-        self.action_set_initial : tuple = action_set
-        self.GDP_initial : float = GDP_initial
-        self.percentage_green = percentage_green
-        self.benefit_shape : callable = benefit_function
-        self.GDP_max = deepcopy(GDP_initial)
-        self.action_set = deepcopy(action_set)
-        self.T : int = action_set.shape[0]
-        self.scm = deepcopy(scm)
-        self.damage_function = damage_function
-        self.delta = impact_factor_of_temperature
-        self.alpha = alpha
-        self.increase_co2 = increase_co2
-        self.damage_in_percentage : bool = damage_in_percentage
-        self.discount = discount
-
-
-    def reset_player(self):
-        """Function which reset the player to the initial state for a given time period.
-
-        Parameters
-        ----------
-        t : int
-            The time period to reset the player for.
-        """
-
-        # deepcopy for reset due to pointer 
-        self.action_set = deepcopy(self.action_set_initial)
-        self.GDP_max = deepcopy(self.GDP_initial)
+#         self.name : str = name
+#         self.action_set_initial : tuple = action_set
+#         self.GDP_initial : float = GDP_initial
+#         self.percentage_green = percentage_green
+#         self.benefit_shape : callable = benefit_function
+#         self.GDP_max = deepcopy(GDP_initial)
+#         self.action_set = deepcopy(action_set)
+#         self.T : int = action_set.shape[0]
+#         self.scm = deepcopy(scm)
+#         self.damage_function = damage_function
+#         self.delta = impact_factor_of_temperature
+#         self.alpha = alpha
+#         self.increase_co2 = increase_co2
+#         self.damage_in_percentage : bool = damage_in_percentage
+#         self.discount = discount
 
 
-    def reset_scm(self) -> None:
-        """Function which reset the SCM of the player.
-        """
-        self.scm.reset()
+#     def reset_player(self):
+#         """Function which reset the player to the initial state for a given time period.
+
+#         Parameters
+#         ----------
+#         t : int
+#             The time period to reset the player for.
+#         """
+
+#         # deepcopy for reset due to pointer 
+#         self.action_set = deepcopy(self.action_set_initial)
+#         self.GDP_max = deepcopy(self.GDP_initial)
 
 
-    def reset(self):
-        """Function which reset the player and the SCM.
-        """
-        self.reset_player()
-        self.reset_scm()
+#     def reset_scm(self) -> None:
+#         """Function which reset the SCM of the player.
+#         """
+#         self.scm.reset()
 
-    def benefit(self, actions : np.ndarray, **kwargs):
-        """
-        Calculate the benefit of the player for a given set of actions.
 
-        Parameters
-        ----------
-        actions : np.ndarray
-            Array of emissions, one for each time period.
+#     def reset(self):
+#         """Function which reset the player and the SCM.
+#         """
+#         self.reset_player()
+#         self.reset_scm()
 
-        Keyword Arguments
-        -----------------
-        GDP_max : float, optional
-            Maximum GDP attainable of the player. Often it will be replaced with self.GDP_max but in some case it's useful to have it as a parameter.
-        e_max : np.ndarray, optional
-            Array of maximum emissions allowed by the player for each time period. If not provided, it will take the default values in self.action_set.
+#     def benefit(self, actions : np.ndarray, **kwargs):
+#         """
+#         Calculate the benefit of the player for a given set of actions.
 
-        Returns
-        -------
-        np.ndarray
-            Array of benefits, one for each time period.
-        """
-        GDP_max = kwargs.get('GDP_max', self.GDP_max)
-        e_max = kwargs.get('e_max', self.action_set[:,1])
-        percentage_green = kwargs.get('percentage_green', self.percentage_green)
-        t = kwargs.get('t', None)
-        if t is None:
-            t0 = kwargs.get('t0', 0)
-            return np.array([self.benefit_shape(GDP_max, e_max[t0+t], percentage_green)(actions[t]) for t in range(len(actions))])
-        else : 
-            return self.benefit_shape(GDP_max, e_max[t], percentage_green)(actions) 
+#         Parameters
+#         ----------
+#         actions : np.ndarray
+#             Array of emissions, one for each time period.
 
-    def damages(self, emissions, temperature=None):
-        """Calculate the damages caused by the player's emissions.
+#         Keyword Arguments
+#         -----------------
+#         GDP_max : float, optional
+#             Maximum GDP attainable of the player. Often it will be replaced with self.GDP_max but in some case it's useful to have it as a parameter.
+#         e_max : np.ndarray, optional
+#             Array of maximum emissions allowed by the player for each time period. If not provided, it will take the default values in self.action_set.
 
-        Parameters
-        ----------
-        emissions : float or np.ndarray
-            The player's emissions.
+#         Returns
+#         -------
+#         np.ndarray
+#             Array of benefits, one for each time period.
+#         """
+#         GDP_max = kwargs.get('GDP_max', self.GDP_max)
+#         e_max = kwargs.get('e_max', self.action_set[:,1])
+#         percentage_green = kwargs.get('percentage_green', self.percentage_green)
+#         t = kwargs.get('t', None)
+#         if t is None:
+#             t0 = kwargs.get('t0', 0)
+#             return np.array([self.benefit_shape(GDP_max, e_max[t0+t], percentage_green)(actions[t]) for t in range(len(actions))])
+#         else : 
+#             return self.benefit_shape(GDP_max, e_max[t], percentage_green)(actions) 
 
-        temperature : float or np.ndarray, optional
-            The temperature or temperature trajectory. If not provided, the player will generate a temperature with the given emissions using the SCM.
+#     def damages(self, emissions, temperature=None):
+#         """Calculate the damages caused by the player's emissions.
 
-        Returns
-        -------
-        float or np.ndarray
-            The damages caused by the player's emissions.
-        """
-        if isinstance(emissions, float):
-            if temperature is None:
-                temperature = self.scm.evaluate_trajectory(emissions)[-1]
+#         Parameters
+#         ----------
+#         emissions : float or np.ndarray
+#             The player's emissions.
 
-            if self.damage_in_percentage:
-                GDP_max = self.GDP_max
-                damages = self.delta * GDP_max / 100 * (self.damage_function(temperature)) ** self.alpha
-            else:
-                damages = self.delta * (self.damage_function(temperature)) ** self.alpha
-        else:
-            atmospheric_temperatures = None
-            if temperature is not None:
-                atmospheric_temperatures = temperature[-1]
-            else:
-                atmospheric_temperatures = self.scm.evaluate_trajectory(emissions)[-1]
+#         temperature : float or np.ndarray, optional
+#             The temperature or temperature trajectory. If not provided, the player will generate a temperature with the given emissions using the SCM.
 
-            if self.damage_in_percentage:
-                GDP_max = self.GDP_max
-                damages = self.delta * GDP_max / 100 * self.damage_function(atmospheric_temperatures) ** self.alpha
-            else:
-                damages = self.delta * self.damage_function(atmospheric_temperatures) ** self.alpha
+#         Returns
+#         -------
+#         float or np.ndarray
+#             The damages caused by the player's emissions.
+#         """
+#         if isinstance(emissions, float):
+#             if temperature is None:
+#                 temperature = self.scm.evaluate_trajectory(emissions)[-1]
 
-        return damages
+#             if self.damage_in_percentage:
+#                 GDP_max = self.GDP_max
+#                 damages = self.delta * GDP_max / 100 * (self.damage_function(temperature)) ** self.alpha
+#             else:
+#                 damages = self.delta * (self.damage_function(temperature)) ** self.alpha
+#         else:
+#             atmospheric_temperatures = None
+#             if temperature is not None:
+#                 atmospheric_temperatures = temperature[-1]
+#             else:
+#                 atmospheric_temperatures = self.scm.evaluate_trajectory(emissions)[-1]
+
+#             if self.damage_in_percentage:
+#                 GDP_max = self.GDP_max
+#                 damages = self.delta * GDP_max / 100 * self.damage_function(atmospheric_temperatures) ** self.alpha
+#             else:
+#                 damages = self.delta * self.damage_function(atmospheric_temperatures) ** self.alpha
+
+#         return damages

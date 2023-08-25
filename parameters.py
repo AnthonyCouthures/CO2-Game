@@ -1,5 +1,5 @@
 import numpy as np 
-
+from functools import partial
 
 FIG_SIZE=(9,6)
 
@@ -201,7 +201,7 @@ BENEFITS_CONVEX = [benefit_quadratic_convex_with_percentage_green for i in range
 "Shortcut for a list of benefit function, the benefit functions are convex."
 
 
-DAMAGE =  damage_polynome(np.array([0]))
+DAMAGE =  partial(damage_polynome, coefficients = np.array([0]))
 r"Default damage function, the damage function is expressed in \% of GDP loss."
 ALPHA = 1
 "Dafault alpha set to 1."
@@ -209,7 +209,7 @@ ALPHA = 1
 INCREASE_COEF_CO2_RATIO = [0.04467676003648222 for i in range(N)]
 "Default increasing ratio of CO2 emission from a year to a other. currently wrong"
 
-INCREASE_COEF_CO2_RATIO[2] = 0
+# INCREASE_COEF_CO2_RATIO[2] = 0
 
 PERCENTAGES_GREEN = [0.0 for i in range(N)]
 "Default list of the percentage of GDP of the players being noncarbonated."
