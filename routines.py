@@ -11,8 +11,9 @@ from parameters import *
 from models.game_theory_model import *
 from models.game import *
 
+
 @memory.cache
-def classic_game(list_param, list_label, horizon, temperature_target=None, final_multiplier=None):
+def classic_game(list_param, list_label, horizon):
     
     print('Running f(%s)' )
 
@@ -40,14 +41,14 @@ def classic_game(list_param, list_label, horizon, temperature_target=None, final
 
     # loop over parameter and label lists
     for param, label in zip(list_param, list_label):
-        damage_coef, alpha, list_benefit_functions = param
+        damage, alpha, list_benefit_functions = param
         print('coef:', label[0], 'alpha:', label[1], 'function:', label[2][0])
         
         # create list of players
-        list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage_polynome(damage_coef), discount=1)
+        list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage, discount=1)
 
         # create game instance
-        game = Game(list_players, horizon=horizon, temperature_target=temperature_target, final_multiplier=final_multiplier)
+        game = Game(list_players, horizon=horizon)
 
         # run repeated one-shot game for Nash equilibria
         game.repeated_one_shot_game_NE()
@@ -98,7 +99,7 @@ def classic_game(list_param, list_label, horizon, temperature_target=None, final
 
 
 @memory.cache
-def comparing_game_old(list_param,  list_label, list_t_piece, horizon, temperature_target=None, final_multiplier=None):
+def comparing_game_old(list_param,  list_label, list_t_piece, horizon):
 
     list_list_sum_action_planning = []
     list_list_sum_utilities_planning = []
@@ -112,7 +113,7 @@ def comparing_game_old(list_param,  list_label, list_t_piece, horizon, temperatu
     list_list_so_planning_u = []
 
     for param, label in zip(list_param,list_label):
-        damage_coef, alpha, list_benefit_functions = param
+        damage, alpha, list_benefit_functions = param
         print('coef :', label[0], 'alpha :', label[1], 'function :', label[2][0])
 
         list_sum_action_planning = []
@@ -130,9 +131,9 @@ def comparing_game_old(list_param,  list_label, list_t_piece, horizon, temperatu
         list_result_so = []
 
         for t_piece in list_t_piece :
-            list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions,  damage_function=damage_polynome(damage_coef), discount=1)
+            list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions,  damage_function=damage, discount=1)
 
-            game = Game(list_players, horizon=horizon, temperature_target= temperature_target, final_multiplier=final_multiplier)
+            game = Game(list_players, horizon=horizon)
 
             list_result_ne.append(game.planning_BRD_by_piece_return(t_piece=t_piece))
             game.reset()
@@ -162,38 +163,38 @@ def comparing_game_old(list_param,  list_label, list_t_piece, horizon, temperatu
 
 
 @memory.cache
-def planning_game_BRD_t_piece(param, t_piece, horizon, temperature_target=None, final_multiplier= None):
+def planning_game_BRD_t_piece(param, t_piece, horizon):
 
-    damage_coef, alpha, list_benefit_functions = param
+    damage, alpha, list_benefit_functions = param
 
-    list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage_polynome(damage_coef), discount=1)
+    list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage, discount=1)
 
-    game = Game(list_players, horizon=horizon, temperature_target= temperature_target, final_multiplier=final_multiplier)
+    game = Game(list_players, horizon=horizon)
 
     return game.planning_BRD_by_piece_return(t_piece=t_piece)
 
 @memory.cache
-def planning_game_SO_t_piece(param, t_piece, horizon, temperature_target=None, final_multiplier= None):
+def planning_game_SO_t_piece(param, t_piece, horizon):
 
-    damage_coef, alpha, list_benefit_functions = param
+    damage, alpha, list_benefit_functions = param
 
-    list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage_polynome(damage_coef), discount=1)
+    list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage, discount=1)
 
-    game = Game(list_players, horizon=horizon, temperature_target= temperature_target, final_multiplier=final_multiplier)
+    game = Game(list_players, horizon=horizon)
 
     return game.planning_SO_by_piece_return(t_piece=t_piece)
 
 
 @memory.cache
-def planning_game(param, label, horizon, list_t_piece, temperature_target=None, final_multiplier= None):
+def planning_game(param, label, horizon, list_t_piece):
     print('coef :', label[0], 'alpha :', label[1], 'function :', label[2][0])
 
     result_ne = []
     result_so = []
 
     for t_piece in list_t_piece:
-        result_ne.append(planning_game_BRD_t_piece(param=param, t_piece=t_piece, horizon=horizon, temperature_target=temperature_target, final_multiplier=final_multiplier))
-        result_so.append(planning_game_SO_t_piece(param=param, t_piece=t_piece, horizon=horizon, temperature_target=temperature_target, final_multiplier=final_multiplier))
+        result_ne.append(planning_game_BRD_t_piece(param=param, t_piece=t_piece, horizon=horizon))
+        result_so.append(planning_game_SO_t_piece(param=param, t_piece=t_piece, horizon=horizon))
     list_ne_planning, list_sum_action_planning, list_ne_planning_u, list_sum_utilities_planning, list_temp_planning = zip(*result_ne)
     list_so_planning, list_sum_action_planning_so, list_so_planning_u, list_sum_utilities_planning_so, list_temp_planning_so = zip(*result_so)
     print('----------------------------------------')
@@ -203,17 +204,17 @@ def planning_game(param, label, horizon, list_t_piece, temperature_target=None, 
 
 
 @memory.cache
-def planning_game_old(param, label, horizon, list_t_piece, temperature_target=None, final_multiplier= None):
-    damage_coef, alpha, list_benefit_functions = param
+def planning_game_old(param, label, horizon, list_t_piece):
+    damage, alpha, list_benefit_functions = param
     print('coef :', label[0], 'alpha :', label[1], 'function :', label[2][0])
 
     result_ne = []
     result_so = []
 
     for t_piece in list_t_piece:
-        list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage_polynome(damage_coef), discount=1)
+        list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage, discount=1)
 
-        game = Game(list_players, horizon=horizon, temperature_target= temperature_target, final_multiplier=final_multiplier)
+        game = Game(list_players, horizon=horizon)
 
         result_ne.append(game.planning_BRD_by_piece_return(t_piece=t_piece))
         game.reset()
@@ -225,20 +226,20 @@ def planning_game_old(param, label, horizon, list_t_piece, temperature_target=No
     return (list_sum_action_planning, list_sum_utilities_planning, list_ne_planning, list_ne_planning_u, list_temp_planning, list_sum_action_planning_so, list_sum_utilities_planning_so, list_so_planning, list_so_planning_u, list_temp_planning_so)
 
 @memory.cache
-def comparing_planning_game_old(list_param, list_label, list_t_piece, horizon, temperature_target=None, final_multiplier=None):
+def comparing_planning_game_old(list_param, list_label, list_t_piece, horizon):
     result = []
 
     for param, label in zip(list_param,list_label):
-        damage_coef, alpha, list_benefit_functions = param
+        damage, alpha, list_benefit_functions = param
         print('coef :', label[0], 'alpha :', label[1], 'function :', label[2][0])
 
         result_ne = []
         result_so = []
 
         for t_piece in list_t_piece:
-            list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage_polynome(damage_coef), discount=1)
+            list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage, discount=1)
 
-            game = Game(list_players, horizon=horizon, temperature_target= temperature_target, final_multiplier=final_multiplier)
+            game = Game(list_players, horizon=horizon)
 
             result_ne.append(game.planning_BRD_by_piece_return(t_piece=t_piece))
             game.reset()
@@ -253,50 +254,50 @@ def comparing_planning_game_old(list_param, list_label, list_t_piece, horizon, t
 
 
 @memory.cache
-def comparing_planning_game(list_param, list_label, list_t_piece, horizon, temperature_target=None, final_multiplier=None):
+def comparing_planning_game(list_param, list_label, list_t_piece, horizon):
     result = []
 
     for param, label in zip(list_param,list_label):
 
-        result.append(planning_game(param, label, horizon, list_t_piece, temperature_target=None, final_multiplier= None))
+        result.append(planning_game(param, label, horizon, list_t_piece))
 
     return list(zip(*result))
 
 
 @memory.cache
-def receding_game_BRD_t_piece(param, t_piece, horizon, temperature_target=None, final_multiplier= None):
+def receding_game_BRD_t_piece(param, t_piece, horizon):
 
-    damage_coef, alpha, list_benefit_functions = param
+    damage, alpha, list_benefit_functions = param
 
-    list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage_polynome(damage_coef), discount=1)
+    list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage, discount=1)
 
-    game = Game(list_players, horizon=horizon, temperature_target= temperature_target, final_multiplier=final_multiplier)
+    game = Game(list_players, horizon=horizon)
 
     return game.receding_BRD_by_piece_return(t_piece=t_piece)
 
 @memory.cache
-def receding_game_SO_t_piece(param, t_piece, horizon, temperature_target=None, final_multiplier= None):
+def receding_game_SO_t_piece(param, t_piece, horizon):
 
-    damage_coef, alpha, list_benefit_functions = param
+    damage, alpha, list_benefit_functions = param
 
-    list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage_polynome(damage_coef), discount=1)
+    list_players = create_players(alpha=alpha, list_benefit_functions=list_benefit_functions, damage_function=damage, discount=1)
 
-    game = Game(list_players, horizon=horizon, temperature_target= temperature_target, final_multiplier=final_multiplier)
+    game = Game(list_players, horizon=horizon)
 
     return game.receding_SO_by_piece_return(t_piece=t_piece)
 
 
 
 @memory.cache
-def receding_game(param, label, horizon, list_t_piece, temperature_target=None, final_multiplier= None):
+def receding_game(param, label, horizon, list_t_piece):
     print('coef :', label[0], 'alpha :', label[1], 'function :', label[2][0])
 
     result_ne = []
     result_so = []
 
     for t_piece in list_t_piece:
-        result_ne.append(receding_game_BRD_t_piece(param=param, t_piece=t_piece, horizon=horizon, temperature_target=temperature_target, final_multiplier=final_multiplier))
-        result_so.append(receding_game_SO_t_piece(param=param, t_piece=t_piece, horizon=horizon, temperature_target=temperature_target, final_multiplier=final_multiplier))
+        result_ne.append(receding_game_BRD_t_piece(param=param, t_piece=t_piece, horizon=horizon))
+        result_so.append(receding_game_SO_t_piece(param=param, t_piece=t_piece, horizon=horizon))
     list_ne_planning, list_sum_action_planning, list_ne_planning_u, list_sum_utilities_planning, list_temp_planning = zip(*result_ne)
     list_so_planning, list_sum_action_planning_so, list_so_planning_u, list_sum_utilities_planning_so, list_temp_planning_so = zip(*result_so)
     print('----------------------------------------')
@@ -305,11 +306,11 @@ def receding_game(param, label, horizon, list_t_piece, temperature_target=None, 
 
 
 @memory.cache
-def comparing_receding_game(list_param, list_label, list_t_piece, horizon, temperature_target=None, final_multiplier=None):
+def comparing_receding_game(list_param, list_label, list_t_piece, horizon):
     result = []
 
     for param, label in zip(list_param,list_label):
-        result.append(receding_game(param, label, horizon, list_t_piece, temperature_target=None, final_multiplier= None))
+        result.append(receding_game(param, label, horizon, list_t_piece))
 
 
     return list(zip(*result))
